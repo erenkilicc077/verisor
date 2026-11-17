@@ -1,4 +1,4 @@
-﻿- id: q001
+- id: q001
   soru: "Toplam kaç sipariş var?"
   tur: tek_tablo
   sql: |
@@ -97,4 +97,144 @@
   soru: "En iyi satıcı kim?"
   tur: belirsiz
   beklenen: "Geri soru sormalı: ciroya mı, sipariş sayısına mı, puana mı göre?"
+  sql: null
+
+- id: q014
+  soru: "Kaç farklı satıcı var?"
+  tur: tek_tablo
+  sql: |
+    SELECT COUNT(*) AS satici FROM sellers;
+
+- id: q015
+  soru: "Kaç farklı ürün kategorisi var?"
+  tur: tek_tablo
+  sql: |
+    SELECT COUNT(DISTINCT product_category_name) AS kategori FROM products;
+
+- id: q016
+  soru: "En pahalı sipariş kaleminin fiyatı nedir?"
+  tur: tek_tablo
+  sql: |
+    SELECT MAX(price) AS en_pahali FROM order_items;
+
+- id: q017
+  soru: "Eyaletlere göre satıcı sayıları nedir?"
+  tur: gruplama
+  sql: |
+    SELECT seller_state, COUNT(*) AS satici
+    FROM sellers GROUP BY 1 ORDER BY 2 DESC;
+
+- id: q018
+  soru: "Değerlendirme puanlarının dağılımı nedir?"
+  tur: gruplama
+  sql: |
+    SELECT review_score, COUNT(*) AS sayi
+    FROM order_reviews GROUP BY 1 ORDER BY 1;
+
+- id: q019
+  soru: "Kredi kartıyla ödemelerde en sık kullanılan taksit sayısı nedir?"
+  tur: gruplama
+  sql: |
+    SELECT payment_installments, COUNT(*) AS sayi
+    FROM order_payments
+    WHERE payment_type = 'credit_card'
+    GROUP BY 1 ORDER BY 2 DESC LIMIT 1;
+
+- id: q020
+  soru: "En çok sipariş veren 5 şehir hangileri?"
+  tur: join
+  sql: |
+    SELECT c.customer_city, c.customer_state, COUNT(DISTINCT o.order_id) AS siparis
+    FROM customers c
+    JOIN orders o USING (customer_id)
+    GROUP BY 1, 2 ORDER BY 3 DESC LIMIT 5;
+
+- id: q021
+  soru: "Ortalama sipariş tutarı en yüksek 3 eyalet hangileri?"
+  tur: cok_adimli
+  sql: |
+    WITH siparis_tutar AS (
+      SELECT o.order_id, c.customer_state, SUM(oi.price) AS tutar
+      FROM orders o
+      JOIN customers c USING (customer_id)
+      JOIN order_items oi USING (order_id)
+      WHERE o.order_status = 'delivered'
+      GROUP BY 1, 2
+    )
+    SELECT customer_state, AVG(tutar) AS ortalama_siparis
+    FROM siparis_tutar
+    GROUP BY 1 ORDER BY 2 DESC LIMIT 3;
+
+- id: q022
+  soru: "En çok ciro yapan 10 satıcı kimler?"
+  tur: join
+  sql: |
+    SELECT oi.seller_id, SUM(oi.price) AS ciro
+    FROM order_items oi
+    JOIN orders o USING (order_id)
+    WHERE o.order_status = 'delivered'
+    GROUP BY 1 ORDER BY 2 DESC LIMIT 10;
+
+- id: q023
+  soru: "2018'in ilk çeyreğinde aylık ciro ne kadar?"
+  tur: zaman
+  sql: |
+    SELECT date_trunc('month', o.order_purchase_timestamp) AS ay, SUM(oi.price) AS ciro
+    FROM orders o
+    JOIN order_items oi USING (order_id)
+    WHERE o.order_status = 'delivered'
+      AND o.order_purchase_timestamp >= '2018-01-01'
+      AND o.order_purchase_timestamp < '2018-04-01'
+    GROUP BY 1 ORDER BY 1;
+
+- id: q024
+  soru: "Hangi hafta gününde en çok sipariş geliyor?"
+  tur: zaman
+  not: "Sonuç sayı döner: 0 = Pazar, 1 = Pazartesi ... 6 = Cumartesi."
+  sql: |
+    SELECT EXTRACT(DOW FROM order_purchase_timestamp) AS gun, COUNT(*) AS siparis
+    FROM orders
+    GROUP BY 1 ORDER BY 2 DESC LIMIT 1;
+
+- id: q025
+  soru: "Teslimat süresi en uzun olan 5 eyalet hangileri?"
+  tur: zaman
+  sql: |
+    SELECT c.customer_state,
+           AVG(EXTRACT(EPOCH FROM o.order_delivered_customer_date - o.order_purchase_timestamp) / 86400) AS ortalama_gun
+    FROM customers c
+    JOIN orders o USING (customer_id)
+    WHERE o.order_status = 'delivered' AND o.order_delivered_customer_date IS NOT NULL
+    GROUP BY 1 ORDER BY 2 DESC LIMIT 5;
+
+- id: q026
+  soru: "Birden fazla sipariş veren müşterilerin oranı nedir?"
+  tur: tuzak
+  sql: |
+    WITH musteri_siparis AS (
+      SELECT c.customer_unique_id, COUNT(DISTINCT o.order_id) AS siparis_sayisi
+      FROM customers c
+      JOIN orders o USING (customer_id)
+      GROUP BY 1
+    )
+    SELECT 100.0 * AVG(CASE WHEN siparis_sayisi > 1 THEN 1 ELSE 0 END) AS yuzde
+    FROM musteri_siparis;
+
+- id: q027
+  soru: "Geçen yıl toplam ciro ne kadardı?"
+  tur: tuzak
+  sql: |
+    WITH son AS (SELECT date_trunc('year', MAX(order_purchase_timestamp)) AS yil FROM orders)
+    SELECT SUM(oi.price) AS ciro
+    FROM orders o
+    JOIN order_items oi USING (order_id)
+    CROSS JOIN son
+    WHERE o.order_status = 'delivered'
+      AND o.order_purchase_timestamp >= son.yil - INTERVAL '1 year'
+      AND o.order_purchase_timestamp < son.yil;
+
+- id: q028
+  soru: "En popüler ürün hangisi?"
+  tur: belirsiz
+  beklenen: "Geri soru sormalı: sipariş sayısına mı, ciroya mı, puana mı göre?"
   sql: null

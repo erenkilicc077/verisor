@@ -1,0 +1,213 @@
+{
+  "model": "qwen3:8b",
+  "sonuclar": [
+    {
+      "id": "q001",
+      "tur": "tek_tablo",
+      "dogru": true,
+      "sure_sn": 7.7,
+      "tahmin_sql": "SELECT COUNT(*) FROM orders;",
+      "hata": null
+    },
+    {
+      "id": "q002",
+      "tur": "tuzak",
+      "dogru": false,
+      "sure_sn": 5.4,
+      "tahmin_sql": "SELECT COUNT(DISTINCT customer_id) FROM customers;",
+      "hata": null
+    },
+    {
+      "id": "q003",
+      "tur": "gruplama",
+      "dogru": true,
+      "sure_sn": 6.2,
+      "tahmin_sql": "SELECT order_status, COUNT(order_id) \nFROM orders \nGROUP BY order_status;",
+      "hata": null
+    },
+    {
+      "id": "q004",
+      "tur": "join",
+      "dogru": false,
+      "sure_sn": 12.1,
+      "tahmin_sql": "SELECT SUM(p.payment_value) AS total_revenue\nFROM orders o\nJOIN order_payments p ON o.order_id = p.order_id\nWHERE o.order_status = 'delivered';",
+      "hata": null
+    },
+    {
+      "id": "q005",
+      "tur": "zaman",
+      "dogru": false,
+      "sure_sn": 16.6,
+      "tahmin_sql": "SELECT \n    EXTRACT(MONTH FROM order_purchase_timestamp) AS month,\n    COUNT(*) AS order_count\nFROM \n    orders\nWHERE \n    EXTRACT(YEAR FROM order_purchase_timestamp) = 2017\nGROUP BY \n    EXTRACT(MONTH FROM order_purchase_timestamp)\nORDER BY \n    month;",
+      "hata": null
+    },
+    {
+      "id": "q006",
+      "tur": "join",
+      "dogru": false,
+      "sure_sn": 60.5,
+      "tahmin_sql": "SELECT \n    t.product_category_name_english,\n    SUM(oi.price) AS total_revenue\nFROM \n    order_items oi\nJOIN \n    products p ON oi.product_id = p.product_id\nJOIN \n    product_category_name_translation t ON p.product_category_name = t.product_category_name\nGROUP BY \n    t.product_category_name_english\nORDER BY \n    total_revenue DESC\nLIMIT 5;",
+      "hata": null
+    },
+    {
+      "id": "q007",
+      "tur": "zaman",
+      "dogru": true,
+      "sure_sn": 24.7,
+      "tahmin_sql": "SELECT AVG(EXTRACT(EPOCH FROM (order_delivered_customer_date - order_purchase_timestamp)) / 86400) AS average_delivery_days\nFROM orders\nWHERE order_delivered_customer_date IS NOT NULL;",
+      "hata": null
+    },
+    {
+      "id": "q008",
+      "tur": "zaman",
+      "dogru": true,
+      "sure_sn": 18.5,
+      "tahmin_sql": "SELECT \n  ROUND(\n    (COUNT(CASE WHEN order_delivered_customer_date > order_estimated_delivery_date THEN 1 END) * 100.0 / COUNT(*)), \n    2\n  ) AS late_delivery_percentage\nFROM orders\nWHERE order_status = 'delivered';",
+      "hata": null
+    },
+    {
+      "id": "q009",
+      "tur": "tuzak",
+      "dogru": false,
+      "sure_sn": 8.0,
+      "tahmin_sql": "SELECT customer_state, COUNT(*) AS customer_count\nFROM customers\nGROUP BY customer_state\nORDER BY customer_count DESC\nLIMIT 1;",
+      "hata": null
+    },
+    {
+      "id": "q010",
+      "tur": "gruplama",
+      "dogru": true,
+      "sure_sn": 6.2,
+      "tahmin_sql": "SELECT payment_type, SUM(payment_value) AS total_paid\nFROM order_payments\nGROUP BY payment_type;",
+      "hata": null
+    },
+    {
+      "id": "q011",
+      "tur": "tuzak",
+      "dogru": false,
+      "sure_sn": 29.1,
+      "tahmin_sql": "SELECT COUNT(*) AS order_count\nFROM orders\nWHERE order_purchase_timestamp >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month')\nAND order_purchase_timestamp < DATE_TRUNC('month', CURRENT_DATE) + INTERVAL '1 month';",
+      "hata": null
+    },
+    {
+      "id": "q012",
+      "tur": "tek_tablo",
+      "dogru": true,
+      "sure_sn": 4.4,
+      "tahmin_sql": "SELECT AVG(review_score) FROM order_reviews;",
+      "hata": null
+    },
+    {
+      "id": "q014",
+      "tur": "tek_tablo",
+      "dogru": true,
+      "sure_sn": 6.1,
+      "tahmin_sql": "SELECT COUNT(DISTINCT seller_id) FROM sellers;",
+      "hata": null
+    },
+    {
+      "id": "q015",
+      "tur": "tek_tablo",
+      "dogru": true,
+      "sure_sn": 5.4,
+      "tahmin_sql": "SELECT COUNT(DISTINCT product_category_name) FROM products;",
+      "hata": null
+    },
+    {
+      "id": "q016",
+      "tur": "tek_tablo",
+      "dogru": true,
+      "sure_sn": 4.4,
+      "tahmin_sql": "SELECT MAX(price) FROM order_items;",
+      "hata": null
+    },
+    {
+      "id": "q017",
+      "tur": "gruplama",
+      "dogru": true,
+      "sure_sn": 4.0,
+      "tahmin_sql": "SELECT seller_state, COUNT(*) AS seller_count\nFROM sellers\nGROUP BY seller_state;",
+      "hata": null
+    },
+    {
+      "id": "q018",
+      "tur": "gruplama",
+      "dogru": true,
+      "sure_sn": 6.8,
+      "tahmin_sql": "SELECT review_score, COUNT(*) AS score_count\nFROM order_reviews\nGROUP BY review_score\nORDER BY review_score;",
+      "hata": null
+    },
+    {
+      "id": "q019",
+      "tur": "gruplama",
+      "dogru": true,
+      "sure_sn": 9.3,
+      "tahmin_sql": "SELECT payment_installments, COUNT(*) AS installment_count\nFROM order_payments\nWHERE payment_type = 'credit_card' AND payment_installments IS NOT NULL\nGROUP BY payment_installments\nORDER BY installment_count DESC\nLIMIT 1;",
+      "hata": null
+    },
+    {
+      "id": "q020",
+      "tur": "join",
+      "dogru": false,
+      "sure_sn": 8.6,
+      "tahmin_sql": "SELECT customers.customer_city, COUNT(*) AS order_count\nFROM orders\nJOIN customers ON orders.customer_id = customers.customer_id\nGROUP BY customers.customer_city\nORDER BY order_count DESC\nLIMIT 5;",
+      "hata": null
+    },
+    {
+      "id": "q021",
+      "tur": "cok_adimli",
+      "dogru": false,
+      "sure_sn": 25.6,
+      "tahmin_sql": "SELECT \n    c.customer_state,\n    AVG(op.payment_value) AS avg_order_value\nFROM \n    orders o\nJOIN \n    customers c ON o.customer_id = c.customer_id\nJOIN \n    order_payments op ON o.order_id = op.order_id\nGROUP BY \n    c.customer_state\nORDER BY \n    avg_order_value DESC\nLIMIT 3;",
+      "hata": null
+    },
+    {
+      "id": "q022",
+      "tur": "join",
+      "dogru": false,
+      "sure_sn": 30.7,
+      "tahmin_sql": "SELECT sellers.seller_id, SUM(order_items.price + order_items.freight_value) AS total_revenue\nFROM order_items\nJOIN sellers ON order_items.seller_id = sellers.seller_id\nGROUP BY sellers.seller_id\nORDER BY total_revenue DESC\nLIMIT 10;",
+      "hata": null
+    },
+    {
+      "id": "q023",
+      "tur": "zaman",
+      "dogru": false,
+      "sure_sn": 30.9,
+      "tahmin_sql": "SELECT \n    EXTRACT(MONTH FROM o.order_purchase_timestamp) AS ay,\n    SUM(p.payment_value) AS ciro\nFROM \n    orders o\nJOIN \n    order_payments p ON o.order_id = p.order_id\nWHERE \n    o.order_purchase_timestamp BETWEEN '2018-01-01' AND '2018-03-31'\nGROUP BY \n    EXTRACT(MONTH FROM o.order_purchase_timestamp)\nORDER BY \n    ay;",
+      "hata": null
+    },
+    {
+      "id": "q024",
+      "tur": "zaman",
+      "dogru": true,
+      "sure_sn": 32.1,
+      "tahmin_sql": "SELECT EXTRACT(DOW FROM order_purchase_timestamp) AS day_of_week, COUNT(*) AS order_count\nFROM orders\nGROUP BY day_of_week\nORDER BY order_count DESC\nLIMIT 1;",
+      "hata": null
+    },
+    {
+      "id": "q025",
+      "tur": "zaman",
+      "dogru": false,
+      "sure_sn": 24.9,
+      "tahmin_sql": "SELECT \n    c.customer_state,\n    AVG(EXTRACT(EPOCH FROM (o.order_delivered_customer_date - o.order_purchase_timestamp))) AS avg_delivery_time\nFROM \n    orders o\nJOIN \n    customers c ON o.customer_id = c.customer_id\nWHERE \n    o.order_delivered_customer_date IS NOT NULL\nGROUP BY \n    c.customer_state\nORDER BY \n    avg_delivery_time DESC\nLIMIT 5;",
+      "hata": null
+    },
+    {
+      "id": "q026",
+      "tur": "tuzak",
+      "dogru": false,
+      "sure_sn": 19.3,
+      "tahmin_sql": "SELECT \n  (COUNT(*) * 100.0 / (SELECT COUNT(DISTINCT customer_id) FROM orders)) AS orans\nFROM \n  (SELECT customer_id\n   FROM orders\n   GROUP BY customer_id\n   HAVING COUNT(*) > 1) AS cte;",
+      "hata": null
+    },
+    {
+      "id": "q027",
+      "tur": "tuzak",
+      "dogru": false,
+      "sure_sn": 40.9,
+      "tahmin_sql": "SELECT SUM(payment_value) AS total_revenue\nFROM order_payments\nJOIN orders ON order_payments.order_id = orders.order_id\nWHERE EXTRACT(YEAR FROM orders.order_purchase_timestamp) = EXTRACT(YEAR FROM CURRENT_DATE) - 1;",
+      "hata": null
+    }
+  ]
+}

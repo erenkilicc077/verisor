@@ -1,0 +1,100 @@
+﻿- id: q001
+  soru: "Toplam kaç sipariş var?"
+  tur: tek_tablo
+  sql: |
+    SELECT COUNT(DISTINCT order_id) FROM orders;
+
+- id: q002
+  soru: "Kaç farklı müşterimiz var?"
+  tur: tuzak
+  sql: |
+    SELECT COUNT(DISTINCT customer_unique_id) FROM customers;
+
+- id: q003
+  soru: "Sipariş durumlarına göre sipariş sayıları nedir?"
+  tur: gruplama
+  sql: |
+    SELECT order_status, COUNT(*) AS siparis
+    FROM orders GROUP BY 1 ORDER BY 2 DESC;
+
+- id: q004
+  soru: "Teslim edilen siparişlerden gelen toplam ciro ne kadar?"
+  tur: join
+  sql: |
+    SELECT SUM(oi.price) AS ciro
+    FROM order_items oi JOIN orders o USING (order_id)
+    WHERE o.order_status = 'delivered';
+
+- id: q005
+  soru: "2017 yılında her ay kaç sipariş geldi?"
+  tur: zaman
+  sql: |
+    SELECT date_trunc('month', order_purchase_timestamp) AS ay, COUNT(*) AS siparis
+    FROM orders
+    WHERE order_purchase_timestamp >= '2017-01-01' AND order_purchase_timestamp < '2018-01-01'
+    GROUP BY 1 ORDER BY 1;
+
+- id: q006
+  soru: "En çok ciro getiren 5 ürün kategorisi hangileri?"
+  tur: join
+  sql: |
+    SELECT COALESCE(t.product_category_name_english, p.product_category_name) AS kategori,
+           SUM(oi.price) AS ciro
+    FROM order_items oi
+    JOIN orders o USING (order_id)
+    JOIN products p USING (product_id)
+    LEFT JOIN product_category_name_translation t USING (product_category_name)
+    WHERE o.order_status = 'delivered'
+    GROUP BY 1 ORDER BY 2 DESC LIMIT 5;
+
+- id: q007
+  soru: "Siparişler ortalama kaç günde teslim ediliyor?"
+  tur: zaman
+  sql: |
+    SELECT AVG(EXTRACT(EPOCH FROM order_delivered_customer_date - order_purchase_timestamp) / 86400) AS gun
+    FROM orders
+    WHERE order_status = 'delivered' AND order_delivered_customer_date IS NOT NULL;
+
+- id: q008
+  soru: "Teslim edilen siparişlerin yüzde kaçı geç geldi?"
+  tur: zaman
+  sql: |
+    SELECT 100.0 * AVG(CASE WHEN order_delivered_customer_date > order_estimated_delivery_date THEN 1 ELSE 0 END) AS yuzde
+    FROM orders
+    WHERE order_status = 'delivered' AND order_delivered_customer_date IS NOT NULL;
+
+- id: q009
+  soru: "En çok müşteri hangi eyalette?"
+  tur: tuzak
+  sql: |
+    SELECT customer_state, COUNT(DISTINCT customer_unique_id) AS musteri
+    FROM customers GROUP BY 1 ORDER BY 2 DESC LIMIT 1;
+
+- id: q010
+  soru: "Ödeme yöntemlerine göre toplam ödenen tutar nedir?"
+  tur: gruplama
+  sql: |
+    SELECT payment_type, SUM(payment_value) AS tutar
+    FROM order_payments GROUP BY 1 ORDER BY 2 DESC;
+
+- id: q011
+  soru: "Geçen ay kaç sipariş geldi?"
+  tur: tuzak
+  sql: |
+    WITH son AS (SELECT date_trunc('month', MAX(order_purchase_timestamp)) AS ay FROM orders)
+    SELECT COUNT(*) AS siparis
+    FROM orders, son
+    WHERE order_purchase_timestamp >= son.ay - INTERVAL '1 month'
+      AND order_purchase_timestamp < son.ay;
+
+- id: q012
+  soru: "Ortalama değerlendirme puanı kaç?"
+  tur: tek_tablo
+  sql: |
+    SELECT AVG(review_score) AS puan FROM order_reviews;
+
+- id: q013
+  soru: "En iyi satıcı kim?"
+  tur: belirsiz
+  beklenen: "Geri soru sormalı: ciroya mı, sipariş sayısına mı, puana mı göre?"
+  sql: null

@@ -1,0 +1,78 @@
+﻿veritabani: "Olist Brezilya e-ticaret verisi, 2016-2018. Para birimi Brezilya reali (BRL)."
+
+genel_kurallar:
+  - "Veri 2018'de biter. 'Geçen ay', 'bu yıl' gibi ifadeleri bugüne göre değil, orders tablosundaki en son order_purchase_timestamp değerine göre yorumla."
+  - "Tarih filtrelerinde varsayılan olarak order_purchase_timestamp kullan."
+  - "Kategori adlarını kullanıcıya göstermek için product_category_name_translation tablosundaki İngilizce adı kullan."
+
+tablolar:
+  orders:
+    aciklama: "Her satır bir sipariş."
+    kolonlar:
+      order_id: "Sipariş kimliği."
+      customer_id: "Siparişe özel müşteri kimliği. Müşteri saymak için KULLANMA; customers ile birleştirmek için kullan."
+      order_status: "delivered, shipped, canceled, unavailable, invoiced, processing, created, approved"
+      order_purchase_timestamp: "Siparişin verildiği zaman."
+      order_approved_at: "Ödemenin onaylandığı zaman."
+      order_delivered_carrier_date: "Kargoya verildiği zaman."
+      order_delivered_customer_date: "Müşteriye teslim edildiği zaman."
+      order_estimated_delivery_date: "Tahmini teslim tarihi."
+  customers:
+    aciklama: "Her satır bir siparişin müşteri kaydı."
+    kolonlar:
+      customer_id: "orders.customer_id ile eşleşir."
+      customer_unique_id: "Gerçek müşteri kimliği. Müşteri sayısı için bunu say."
+      customer_city: "Şehir (küçük harf, Portekizce)."
+      customer_state: "Eyalet kodu, örn. SP, RJ, MG."
+  order_items:
+    aciklama: "Her satır bir siparişteki bir ürün kalemi."
+    kolonlar:
+      order_id: "orders.order_id ile eşleşir."
+      order_item_id: "Sipariş içindeki kalem sırası (1, 2, 3...)."
+      product_id: "products.product_id ile eşleşir."
+      seller_id: "sellers.seller_id ile eşleşir."
+      price: "Kalem fiyatı, kargo hariç."
+      freight_value: "Kalemin kargo ücreti."
+  order_payments:
+    aciklama: "Her satır bir siparişin bir ödemesi. Bir siparişte birden çok ödeme satırı olabilir."
+    kolonlar:
+      order_id: "orders.order_id ile eşleşir."
+      payment_type: "credit_card, boleto, voucher, debit_card"
+      payment_installments: "Taksit sayısı."
+      payment_value: "Ödenen tutar."
+  order_reviews:
+    aciklama: "Müşteri değerlendirmeleri. Aynı siparişe birden çok değerlendirme olabilir."
+    kolonlar:
+      order_id: "orders.order_id ile eşleşir."
+      review_score: "1-5 arası puan."
+      review_comment_message: "Portekizce yorum metni, çoğu boş."
+  products:
+    aciklama: "Ürün kataloğu. Kolon adlarında kaynaktan gelen yazım hatası var: product_name_lenght, product_description_lenght."
+    kolonlar:
+      product_id: "Ürün kimliği."
+      product_category_name: "Portekizce kategori adı."
+      product_weight_g: "Ağırlık (gram)."
+  sellers:
+    aciklama: "Satıcılar."
+    kolonlar:
+      seller_id: "Satıcı kimliği."
+      seller_city: "Şehir."
+      seller_state: "Eyalet kodu."
+  product_category_name_translation:
+    aciklama: "Portekizce kategori adını İngilizceye çevirir."
+    kolonlar:
+      product_category_name: "Portekizce ad, products ile eşleşir."
+      product_category_name_english: "İngilizce ad."
+  geolocation:
+    aciklama: "Posta kodundan enlem/boylama. Aynı posta kodu birçok kez geçer; doğrudan JOIN yapma, önce posta koduna göre tekilleştir."
+    kolonlar:
+      geolocation_zip_code_prefix: "Posta kodunun ilk 5 hanesi."
+
+is_terimleri:
+  ciro: "SUM(order_items.price), yalnızca order_status = 'delivered' olan siparişler, kargo hariç."
+  siparis_sayisi: "COUNT(DISTINCT orders.order_id)"
+  musteri_sayisi: "COUNT(DISTINCT customers.customer_unique_id)"
+  ortalama_sepet: "Ciro / teslim edilen sipariş sayısı."
+  teslimat_suresi: "order_delivered_customer_date - order_purchase_timestamp, gün olarak."
+  gec_teslimat: "order_delivered_customer_date > order_estimated_delivery_date"
+  tekrar_eden_musteri: "2 veya daha fazla siparişi olan customer_unique_id."

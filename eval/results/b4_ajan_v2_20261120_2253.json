@@ -1,0 +1,408 @@
+{
+  "deney": "b4_ajan_v2",
+  "model": "qwen3:8b",
+  "sonuclar": [
+    {
+      "id": "q001",
+      "tur": "tek_tablo",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 0.9,
+      "adimlar": [
+        {
+          "sql": "SELECT COUNT(DISTINCT orders.order_id) AS total_orders\nFROM orders;",
+          "hata": null,
+          "satir": 1,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q002",
+      "tur": "tuzak",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 0.7,
+      "adimlar": [
+        {
+          "sql": "SELECT COUNT(DISTINCT customers.customer_unique_id) AS musteri_sayisi\nFROM customers;",
+          "hata": null,
+          "satir": 1,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q003",
+      "tur": "gruplama",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 1.1,
+      "adimlar": [
+        {
+          "sql": "SELECT \n    order_status, \n    COUNT(DISTINCT order_id) AS siparis_sayisi\nFROM \n    orders\nGROUP BY \n    order_status;",
+          "hata": null,
+          "satir": 8,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q004",
+      "tur": "join",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 1.1,
+      "adimlar": [
+        {
+          "sql": "SELECT \n  SUM(order_items.price) AS total_revenue\nFROM \n  orders\n  JOIN order_items ON orders.order_id = order_items.order_id\nWHERE \n  orders.order_status = 'delivered';",
+          "hata": null,
+          "satir": 1,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q005",
+      "tur": "zaman",
+      "dogru": false,
+      "deneme": 1,
+      "sure_sn": 2.0,
+      "adimlar": [
+        {
+          "sql": "SELECT \n  EXTRACT(MONTH FROM orders.order_purchase_timestamp) AS month,\n  COUNT(DISTINCT orders.order_id) AS order_count\nFROM \n  orders\nWHERE \n  EXTRACT(YEAR FROM orders.order_purchase_timestamp) = 2017\nGROUP BY \n  EXTRACT(MONTH FROM orders.order_purchase_timestamp)\nORDER BY \n  month;",
+          "hata": null,
+          "satir": 12,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q006",
+      "tur": "join",
+      "dogru": false,
+      "deneme": 1,
+      "sure_sn": 2.9,
+      "adimlar": [
+        {
+          "sql": "SELECT \n    p.product_category_name,\n    t.product_category_name_english,\n    SUM(oi.price) AS ciro\nFROM \n    order_items oi\nJOIN \n    orders o ON oi.order_id = o.order_id\nJOIN \n    products p ON oi.product_id = p.product_id\nJOIN \n    product_category_name_translation t ON p.product_category_name = t.product_category_name\nWHERE \n    o.order_status = 'delivered'\nGROUP BY \n    p.product_category_name,\n    t.product_category_name_english\nORDER BY \n    ciro DESC\nLIMIT 5;",
+          "hata": null,
+          "satir": 5,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q007",
+      "tur": "zaman",
+      "dogru": false,
+      "deneme": 2,
+      "sure_sn": 2.7,
+      "adimlar": [
+        {
+          "sql": "SELECT \n  EXTRACT(DAY FROM (order_delivered_customer_date - order_purchase_timestamp))::numeric::decimal AS ortalama_teslim_suresi\nFROM \n  orders\nWHERE \n  order_status = 'delivered';",
+          "hata": null,
+          "satir": 96478,
+          "geri_bildirim": "Soru özet bir cevap istiyor ama sorgu 96478 satır döndürdü. Toplama fonksiyonunu (AVG, SUM, COUNT) ya da GROUP BY'ı unutmuş olabilirsin. SQL'i düzeltip tekrar yaz."
+        },
+        {
+          "sql": "SELECT \n  AVG(EXTRACT(DAY FROM (order_delivered_customer_date - order_purchase_timestamp)))::numeric(10,2) AS ortalama_teslim_suresi\nFROM \n  orders\nWHERE \n  order_status = 'delivered';",
+          "hata": null,
+          "satir": 1,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q008",
+      "tur": "zaman",
+      "dogru": false,
+      "deneme": 1,
+      "sure_sn": 1.9,
+      "adimlar": [
+        {
+          "sql": "SELECT \n  ROUND(100.0 * COUNT(CASE WHEN order_delivered_customer_date > order_estimated_delivery_date THEN 1 END) / COUNT(*), 2) AS perc_delivered_late\nFROM \n  orders\nJOIN \n  order_items ON orders.order_id = order_items.order_id\nWHERE \n  orders.order_status = 'delivered';",
+          "hata": null,
+          "satir": 1,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q009",
+      "tur": "tuzak",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 1.5,
+      "adimlar": [
+        {
+          "sql": "SELECT \n    customers.customer_state, \n    COUNT(DISTINCT customers.customer_unique_id) AS musteri_sayisi\nFROM \n    customers\nGROUP BY \n    customers.customer_state\nORDER BY \n    musteri_sayisi DESC\nLIMIT 1;",
+          "hata": null,
+          "satir": 1,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q010",
+      "tur": "gruplama",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 1.3,
+      "adimlar": [
+        {
+          "sql": "SELECT \n    order_payments.payment_type, \n    SUM(order_payments.payment_value) AS total_paid\nFROM \n    order_payments\nJOIN \n    orders ON order_payments.order_id = orders.order_id\nGROUP BY \n    order_payments.payment_type;",
+          "hata": null,
+          "satir": 5,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q011",
+      "tur": "tuzak",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 1.1,
+      "adimlar": [
+        {
+          "sql": "SELECT COUNT(DISTINCT orders.order_id)\nFROM orders\nWHERE orders.order_purchase_timestamp BETWEEN '2018-09-01' AND '2018-10-01';",
+          "hata": null,
+          "satir": 1,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q012",
+      "tur": "tek_tablo",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 1.2,
+      "adimlar": [
+        {
+          "sql": "SELECT \n  ROUND(AVG(review_score), 2) AS ortalama_degerlendirme_puani\nFROM \n  order_reviews\nJOIN \n  orders ON order_reviews.order_id = orders.order_id;",
+          "hata": null,
+          "satir": 1,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q014",
+      "tur": "tek_tablo",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 0.4,
+      "adimlar": [
+        {
+          "sql": "SELECT COUNT(DISTINCT sellers.seller_id)\nFROM sellers;",
+          "hata": null,
+          "satir": 1,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q015",
+      "tur": "tek_tablo",
+      "dogru": false,
+      "deneme": 1,
+      "sure_sn": 0.5,
+      "adimlar": [
+        {
+          "sql": "SELECT COUNT(DISTINCT product_category_name_english)\nFROM product_category_name_translation;",
+          "hata": null,
+          "satir": 1,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q016",
+      "tur": "tek_tablo",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 1.0,
+      "adimlar": [
+        {
+          "sql": "SELECT MAX(price) AS en_pahalı_fiyat\nFROM order_items\nJOIN orders ON order_items.order_id = orders.order_id\nWHERE orders.order_status = 'delivered';",
+          "hata": null,
+          "satir": 1,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q017",
+      "tur": "gruplama",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 1.0,
+      "adimlar": [
+        {
+          "sql": "SELECT \n    sellers.seller_state, \n    COUNT(DISTINCT sellers.seller_id) AS seller_count\nFROM \n    sellers\nGROUP BY \n    sellers.seller_state;",
+          "hata": null,
+          "satir": 23,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q018",
+      "tur": "gruplama",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 0.9,
+      "adimlar": [
+        {
+          "sql": "SELECT \n    review_score, \n    COUNT(*) AS review_count\nFROM \n    order_reviews\nGROUP BY \n    review_score\nORDER BY \n    review_score;",
+          "hata": null,
+          "satir": 5,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q019",
+      "tur": "gruplama",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 1.3,
+      "adimlar": [
+        {
+          "sql": "SELECT \n    payment_installments, \n    COUNT(*) AS frequency\nFROM \n    order_payments\nWHERE \n    payment_type = 'credit_card'\nGROUP BY \n    payment_installments\nORDER BY \n    frequency DESC\nLIMIT 1;",
+          "hata": null,
+          "satir": 1,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q020",
+      "tur": "join",
+      "dogru": false,
+      "deneme": 1,
+      "sure_sn": 1.8,
+      "adimlar": [
+        {
+          "sql": "SELECT \n  customers.customer_city, \n  COUNT(DISTINCT orders.order_id) AS siparis_sayisi\nFROM \n  customers\nJOIN \n  orders ON customers.customer_id = orders.customer_id\nGROUP BY \n  customers.customer_city\nORDER BY \n  siparis_sayisi DESC\nLIMIT 5;",
+          "hata": null,
+          "satir": 5,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q021",
+      "tur": "cok_adimli",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 2.6,
+      "adimlar": [
+        {
+          "sql": "SELECT \n    c.customer_state, \n    SUM(oi.price) / COUNT(DISTINCT o.order_id) AS ortalama_sepet\nFROM \n    orders o\nJOIN \n    customers c ON o.customer_id = c.customer_id\nJOIN \n    order_items oi ON o.order_id = oi.order_id\nWHERE \n    o.order_status = 'delivered'\nGROUP BY \n    c.customer_state\nORDER BY \n    ortalama_sepet DESC\nLIMIT 3;",
+          "hata": null,
+          "satir": 3,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q022",
+      "tur": "join",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 2.1,
+      "adimlar": [
+        {
+          "sql": "SELECT \n    sellers.seller_id,\n    SUM(order_items.price) AS ciro\nFROM \n    orders\nJOIN \n    order_items ON orders.order_id = order_items.order_id\nJOIN \n    sellers ON order_items.seller_id = sellers.seller_id\nWHERE \n    orders.order_status = 'delivered'\nGROUP BY \n    sellers.seller_id\nORDER BY \n    ciro DESC\nLIMIT 10;",
+          "hata": null,
+          "satir": 10,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q023",
+      "tur": "zaman",
+      "dogru": false,
+      "deneme": 1,
+      "sure_sn": 2.8,
+      "adimlar": [
+        {
+          "sql": "SELECT \n    EXTRACT(MONTH FROM order_purchase_timestamp) AS mesafe_ay,\n    SUM(order_items.price) AS aylık_ciro\nFROM \n    orders\nJOIN \n    order_items ON orders.order_id = order_items.order_id\nWHERE \n    order_purchase_timestamp BETWEEN '2018-01-01' AND '2018-03-31'\n    AND orders.order_status = 'delivered'\nGROUP BY \n    EXTRACT(MONTH FROM order_purchase_timestamp)\nORDER BY \n    mesafe_ay;",
+          "hata": null,
+          "satir": 3,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q024",
+      "tur": "zaman",
+      "dogru": false,
+      "deneme": 1,
+      "sure_sn": 1.6,
+      "adimlar": [
+        {
+          "sql": "SELECT \n    EXTRACT(DOW FROM orders.order_purchase_timestamp) AS day_of_week,\n    COUNT(DISTINCT orders.order_id) AS order_count\nFROM \n    orders\nGROUP BY \n    EXTRACT(DOW FROM orders.order_purchase_timestamp)\nORDER BY \n    order_count DESC;",
+          "hata": null,
+          "satir": 7,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q025",
+      "tur": "zaman",
+      "dogru": false,
+      "deneme": 1,
+      "sure_sn": 2.6,
+      "adimlar": [
+        {
+          "sql": "SELECT \n    geolocation_state, \n    EXTRACT(DAY FROM (order_delivered_customer_date - order_purchase_timestamp)) AS teslimat_suresi\nFROM \n    orders\nJOIN \n    customers ON orders.customer_id = customers.customer_id\nJOIN \n    geolocation ON customers.customer_zip_code_prefix = geolocation.geolocation_zip_code_prefix\nWHERE \n    order_delivered_customer_date IS NOT NULL \n    AND order_purchase_timestamp IS NOT NULL\nORDER BY \n    teslimat_suresi DESC\nLIMIT 5;",
+          "hata": null,
+          "satir": 5,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q026",
+      "tur": "tuzak",
+      "dogru": false,
+      "deneme": 2,
+      "sure_sn": 4.7,
+      "adimlar": [
+        {
+          "sql": "SELECT \n  COUNT(DISTINCT CASE WHEN COUNT(order_id) OVER (PARTITION BY customers.customer_unique_id) >= 2 THEN customers.customer_unique_id END) * 1.0 / COUNT(DISTINCT customers.customer_unique_id) AS tekrar_eden_musteri_orani\nFROM customers\nJOIN orders ON customers.customer_id = orders.customer_id\nWHERE orders.order_status = 'delivered';",
+          "hata": "(psycopg.errors.GroupingError) aggregate function calls cannot contain window function calls",
+          "satir": null,
+          "geri_bildirim": "Bu SQL PostgreSQL'de hata verdi:\n(psycopg.errors.GroupingError) aggregate function calls cannot contain window function calls\nToplama fonksiyonlarını iç içe kullanamazsın. Önce WITH ile ara sonucu (örneğin müşteri başına sipariş sayısı) hesapla, sonra dış sorguda topla.\nSQL'i düzeltip tekrar yaz."
+        },
+        {
+          "sql": "WITH customer_order_counts AS (\n  SELECT \n    customers.customer_unique_id,\n    COUNT(orders.order_id) AS order_count\n  FROM customers\n  JOIN orders ON customers.customer_id = orders.customer_id\n  WHERE orders.order_status = 'delivered'\n  GROUP BY customers.customer_unique_id\n)\nSELECT \n  SUM(CASE WHEN order_count >= 2 THEN 1 ELSE 0 END) * 1.0 / COUNT(*) AS tekrar_eden_musteri_orani\nFROM customer_order_counts;",
+          "hata": null,
+          "satir": 1,
+          "geri_bildirim": null
+        }
+      ]
+    },
+    {
+      "id": "q027",
+      "tur": "tuzak",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 1.9,
+      "adimlar": [
+        {
+          "sql": "SELECT \n  SUM(order_items.price) AS total_revenue\nFROM \n  orders\n  JOIN order_items ON orders.order_id = order_items.order_id\nWHERE \n  orders.order_status = 'delivered'\n  AND orders.order_purchase_timestamp BETWEEN '2017-01-01' AND '2018-01-01';",
+          "hata": null,
+          "satir": 1,
+          "geri_bildirim": null
+        }
+      ]
+    }
+  ]
+}

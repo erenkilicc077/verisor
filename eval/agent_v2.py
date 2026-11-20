@@ -45,7 +45,7 @@ def main():
             adimlar, onceki, rows, bas = [], [], None, time.time()
 
             for deneme in range(1, MAX_DENEME + 1):
-                cevap = ollama.chat(model=MODEL, messages=mesajlar, options={"temperature": 0}, think=False)
+                cevap = ollama.chat(model=MODEL, messages=mesajlar, options={"temperature": 0, "seed": 42}, think=False)
                 icerik = cevap["message"]["content"]
                 sql = sql_cikar(icerik)
                 rows, hata = calistir(conn, sql)

@@ -72,7 +72,7 @@ def main():
                     {"role": "system", "content": sistem},
                     {"role": "user", "content": q["soru"]},
                 ],
-                options={"temperature": 0},
+                options={"temperature": 0, "seed": 42},
                 think=False,
             )
             sure = round(time.time() - bas, 1)

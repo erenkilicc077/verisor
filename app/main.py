@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from verisor.ajan import Ajan, MODEL
 
@@ -12,6 +13,11 @@ ajan = Ajan()
 
 class SoruIstegi(BaseModel):
     soru: str = Field(min_length=3, max_length=500, examples=["2017'de her ay kaç sipariş geldi?"])
+
+
+@app.get("/", include_in_schema=False)
+def arayuz():
+    return FileResponse("app/static/index.html")
 
 
 @app.get("/health")

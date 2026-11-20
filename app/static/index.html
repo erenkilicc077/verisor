@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VeriSor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Recursive:slnt,wght,CASL,CRSV,MONO@-15..0,300..1000,0..1,0..1,0..1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --kagit: #F4F7F9;
+    --kare: #D8E2EA;
+    --murekkep: #1E3A9E;
+    --kursun: #24272C;
+    --soluk: #5A6069;
+    --fosfor: #F3E37C;
+    --kirmizi: #C23B2A;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background-color: var(--kagit);
+    background-image:
+      linear-gradient(var(--kare) 1px, transparent 1px),
+      linear-gradient(90deg, var(--kare) 1px, transparent 1px);
+    background-size: 24px 24px;
+    color: var(--kursun);
+    font-family: "Recursive", system-ui, sans-serif;
+    font-variation-settings: "CASL" 0, "MONO" 0;
+    font-size: 17px;
+    line-height: 1.5;
+  }
+  .sayfa {
+    position: relative;
+    max-width: 840px;
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: 48px 24px 96px 80px;
+  }
+  .sayfa::before {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0; left: 52px;
+    width: 2px;
+    background: var(--kirmizi);
+    opacity: .5;
+  }
+  .gizli { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+  header h1 { margin: 0; font-size: 1.3rem; font-weight: 800; }
+  header p { margin: .3rem 0 0; color: var(--soluk); max-width: 62ch; }
+
+  form { margin-top: 48px; }
+  .satir {
+    display: flex; gap: 16px; align-items: flex-end;
+    border-bottom: 2px solid var(--kursun);
+  }
+  .satir:focus-within { border-bottom-color: var(--murekkep); }
+  #soru {
+    flex: 1; min-width: 0;
+    border: 0; outline: none; background: transparent;
+    font: inherit; font-size: 1.6rem;
+    font-variation-settings: "CASL" 1, "MONO" 0;
+    color: var(--murekkep);
+    padding: 8px 0;
+  }
+  #soru::placeholder { color: #8C97A3; }
+  .gonder {
+    margin-bottom: 8px; padding: 10px 22px;
+    border: 0; border-radius: 3px;
+    background: var(--murekkep); color: #fff;
+    font: inherit; font-weight: 700; cursor: pointer;
+  }
+  .gonder:disabled { opacity: .65; cursor: wait; }
+
+  .ornekler { margin-top: 18px; color: var(--soluk); font-size: .95rem; }
+  .ornekler p { margin: 0 0 .3rem; }
+  .ornek {
+    margin: 0 1.1em .3em 0; padding: 0;
+    border: 0; background: none;
+    font: inherit; font-weight: 400;
+    font-variation-settings: "CASL" 1, "MONO" 0;
+    color: var(--murekkep); cursor: pointer;
+    text-decoration: underline; text-decoration-color: #9DB0C4; text-underline-offset: 4px;
+  }
+  .ornek:hover { text-decoration-color: var(--murekkep); }
+
+  :focus-visible { outline: 3px solid var(--fosfor); outline-offset: 2px; }
+
+  .kayit { margin-top: 56px; }
+  .kayit h2 {
+    margin: 0; font-size: 1.35rem; font-weight: 500;
+    font-variation-settings: "CASL" 1, "MONO" 0;
+    color: var(--murekkep);
+  }
+  .bilgi { margin: .25rem 0 1rem; color: var(--soluk); font-size: .9rem; }
+
+  .tek-deger { margin: .5rem 0; }
+  .tek-deger strong {
+    font-size: 2.8rem; font-weight: 800; font-variant-numeric: tabular-nums;
+    padding: 0 .12em;
+    background: linear-gradient(transparent 52%, var(--fosfor) 52%, var(--fosfor) 88%, transparent 88%);
+  }
+  .tek-deger span { display: block; color: var(--soluk); font-size: .9rem; }
+
+  .tablo-kap { overflow-x: auto; }
+  table {
+    width: 100%; border-collapse: collapse;
+    background: rgba(244, 247, 249, .9);
+    font-size: .95rem; font-variant-numeric: tabular-nums;
+  }
+  th { text-align: left; font-weight: 700; border-bottom: 2px solid var(--kursun); padding: 6px 14px 6px 0; }
+  td { border-bottom: 1px solid var(--kare); padding: 6px 14px 6px 0; }
+  .sayi { text-align: right; }
+  .not { color: var(--soluk); font-size: .9rem; }
+
+  .hata {
+    margin: .5rem 0; padding-left: 12px;
+    border-left: 3px solid var(--kirmizi);
+    color: var(--kirmizi);
+    font-variation-settings: "CASL" 1, "MONO" 0;
+  }
+
+  details { margin-top: 1rem; }
+  summary { cursor: pointer; color: var(--murekkep); font-weight: 600; }
+  pre {
+    margin: .6rem 0; padding: 12px 14px;
+    background: #fff; border: 1px solid var(--kare);
+    font-family: inherit; font-variation-settings: "CASL" 0, "MONO" 1;
+    font-size: .86rem; line-height: 1.45;
+    overflow-x: auto; white-space: pre;
+  }
+  details ul { margin: .3rem 0 0; padding-left: 1.2em; color: var(--soluk); }
+
+  .bekle { height: 2px; margin-top: .6rem; background: var(--murekkep); width: 0; animation: ciz 1.6s ease-in-out infinite; }
+  @keyframes ciz { 0% { width: 0; opacity: 1; } 70% { width: 100%; opacity: 1; } 100% { width: 100%; opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { .bekle { animation: none; width: 100%; opacity: .4; } }
+
+  @media (max-width: 600px) {
+    .sayfa { padding: 32px 16px 64px 44px; }
+    .sayfa::before { left: 26px; }
+    #soru { font-size: 1.25rem; }
+    .tek-deger strong { font-size: 2.1rem; }
+  }
+</style>
+</head>
+<body>
+<main class="sayfa">
+  <header>
+    <h1>VeriSor</h1>
+    <p>Satış verine Türkçe soru sor. Cevabı tablo olarak, nasıl hesaplandığıyla birlikte görürsün.
+       Veri: Olist e-ticaret siparişleri, 2016–2018. Veritabanına yalnızca okuma erişimi var.</p>
+  </header>
+
+  <form id="form">
+    <label for="soru" class="gizli">Sorun</label>
+    <div class="satir">
+      <input id="soru" name="soru" autocomplete="off" minlength="3" maxlength="500" required
+             placeholder="Geçen yıl en çok ciro yapan kategori hangisi?">
+      <button class="gonder" type="submit">Sor</button>
+    </div>
+    <div class="ornekler">
+      <p>Şunlardan birini deneyebilirsin:</p>
+      <button type="button" class="ornek">2017'nin son çeyreğinde toplam ciro ne kadar?</button>
+      <button type="button" class="ornek">Ciroya göre en iyi 5 satıcı eyaleti hangileri?</button>
+      <button type="button" class="ornek">Eyaletlere göre müşteri sayısı nedir?</button>
+      <button type="button" class="ornek">Müşteriler kaç farklı eyalette bulunuyor?</button>
+    </div>
+  </form>
+
+  <section id="kayitlar" aria-live="polite"></section>
+</main>
+
+<script>
+  const form = document.getElementById("form");
+  const girdi = document.getElementById("soru");
+  const gonder = form.querySelector(".gonder");
+  const kayitlar = document.getElementById("kayitlar");
+  const sayiBicim = new Intl.NumberFormat("tr-TR", { maximumFractionDigits: 2 });
+
+  function el(etiket, sinif, metin) {
+    const e = document.createElement(etiket);
+    if (sinif) e.className = sinif;
+    if (metin !== undefined) e.textContent = metin;
+    return e;
+  }
+
+  function bicimle(v) {
+    if (v === null || v === undefined) return "—";
+    if (typeof v === "number") return sayiBicim.format(v);
+    if (typeof v === "string" && /^\d{4}-\d{2}-\d{2}T00:00:00$/.test(v)) return v.slice(0, 10);
+    return String(v);
+  }
+
+  function nasilHesaplandi(cevap) {
+    const d = el("details");
+    d.append(el("summary", null, "Nasıl hesaplandı?"));
+    d.append(el("pre", null, cevap.sql || ""));
+    if (cevap.benzer_ornekler && cevap.benzer_ornekler.length) {
+      d.append(el("p", "not", "Model şu benzer sorulardan yararlandı:"));
+      const ul = el("ul");
+      cevap.benzer_ornekler.forEach(s => ul.append(el("li", null, s)));
+      d.append(ul);
+    }
+    return d;
+  }
+
+  function sonucuYaz(kayit, cevap) {
+    const saniye = sayiBicim.format(cevap.sure_sn);
+    const deneme = cevap.deneme > 1 ? `, ${cevap.deneme} denemede` : "";
+    kayit.append(el("p", "bilgi", `${saniye} saniyede${deneme} hesaplandı.`));
+
+    if (cevap.hata) {
+      kayit.append(el("p", "hata", `Bu soru çalıştırılamadı: ${cevap.hata}`));
+    } else if (!cevap.satirlar.length) {
+      kayit.append(el("p", "not", "Sorgu çalıştı ama sonuç boş döndü. Tarih aralığını değiştirerek tekrar sormayı dene."));
+    } else if (cevap.satirlar.length === 1 && cevap.kolonlar.length === 1) {
+      const kutu = el("div", "tek-deger");
+      kutu.append(el("strong", null, bicimle(cevap.satirlar[0][0])));
+      kutu.append(el("span", null, cevap.kolonlar[0]));
+      kayit.append(kutu);
+    } else {
+      const kap = el("div", "tablo-kap");
+      const tablo = el("table");
+      const sayisal = cevap.kolonlar.map((_, i) => cevap.satirlar.every(r => r[i] === null || typeof r[i] === "number"));
+      const bas = el("tr");
+      cevap.kolonlar.forEach((k, i) => bas.append(el("th", sayisal[i] ? "sayi" : null, k)));
+      const thead = el("thead"); thead.append(bas); tablo.append(thead);
+      const govde = el("tbody");
+      cevap.satirlar.forEach(r => {
+        const tr = el("tr");
+        r.forEach((v, i) => tr.append(el("td", sayisal[i] ? "sayi" : null, bicimle(v))));
+        govde.append(tr);
+      });
+      tablo.append(govde);
+      kap.append(tablo);
+      kayit.append(kap);
+      if (cevap.kesildi) kayit.append(el("p", "not", "İlk 200 satır gösteriliyor."));
+    }
+    kayit.append(nasilHesaplandi(cevap));
+  }
+
+  async function sor(soru) {
+    const kayit = el("article", "kayit");
+    kayit.append(el("h2", null, soru));
+    const bekle = el("div", "bekle");
+    kayit.append(bekle);
+    kayitlar.prepend(kayit);
+
+    gonder.disabled = true;
+    gonder.textContent = "Hesaplanıyor…";
+    try {
+      const yanit = await fetch("/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ soru }),
+      });
+      bekle.remove();
+      if (!yanit.ok) {
+        kayit.append(el("p", "hata", `Soru gönderilemedi (HTTP ${yanit.status}). Soru 3 ile 500 karakter arasında olmalı.`));
+        return;
+      }
+      sonucuYaz(kayit, await yanit.json());
+    } catch (e) {
+      bekle.remove();
+      kayit.append(el("p", "hata", "Bir hata oluştu: " + e.message));
+    } finally {
+      gonder.disabled = false;
+      gonder.textContent = "Sor";
+    }
+  }
+
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    const soru = girdi.value.trim();
+    if (soru.length < 3 || gonder.disabled) return;
+    sor(soru);
+    girdi.value = "";
+  });
+
+  document.querySelectorAll(".ornek").forEach(b =>
+    b.addEventListener("click", () => { if (!gonder.disabled) sor(b.textContent); })
+  );
+
+  girdi.focus();
+</script>
+</body>
+</html>

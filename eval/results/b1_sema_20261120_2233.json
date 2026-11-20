@@ -1,0 +1,214 @@
+{
+  "deney": "b1_sema",
+  "model": "qwen3:8b",
+  "sonuclar": [
+    {
+      "id": "q001",
+      "tur": "tek_tablo",
+      "dogru": true,
+      "sure_sn": 0.5,
+      "tahmin_sql": "SELECT COUNT(DISTINCT order_id) FROM orders;",
+      "hata": null
+    },
+    {
+      "id": "q002",
+      "tur": "tuzak",
+      "dogru": false,
+      "sure_sn": 0.4,
+      "tahmin_sql": "SELECT COUNT(DISTINCT customer_id) FROM customers;",
+      "hata": null
+    },
+    {
+      "id": "q003",
+      "tur": "gruplama",
+      "dogru": true,
+      "sure_sn": 0.6,
+      "tahmin_sql": "SELECT orders.order_status, COUNT(*) AS order_count\nFROM orders\nGROUP BY orders.order_status;",
+      "hata": null
+    },
+    {
+      "id": "q004",
+      "tur": "join",
+      "dogru": true,
+      "sure_sn": 0.9,
+      "tahmin_sql": "SELECT SUM(price) AS total_revenue\nFROM order_items\nJOIN orders ON order_items.order_id = orders.order_id\nWHERE orders.order_status = 'delivered';",
+      "hata": null
+    },
+    {
+      "id": "q005",
+      "tur": "zaman",
+      "dogru": false,
+      "sure_sn": 1.8,
+      "tahmin_sql": "SELECT \n  EXTRACT(MONTH FROM order_purchase_timestamp)::int AS month,\n  COUNT(DISTINCT order_id) AS order_count\nFROM \n  orders\nWHERE \n  EXTRACT(YEAR FROM order_purchase_timestamp) = 2017\nGROUP BY \n  EXTRACT(MONTH FROM order_purchase_timestamp)\nORDER BY \n  month;",
+      "hata": null
+    },
+    {
+      "id": "q006",
+      "tur": "join",
+      "dogru": false,
+      "sure_sn": 2.2,
+      "tahmin_sql": "SELECT \n  tc.product_category_name_english AS product_category,\n  SUM(oi.price * oi.order_item_id) AS total_revenue\nFROM \n  order_items oi\nJOIN \n  products p ON oi.product_id = p.product_id\nJOIN \n  product_category_name_translation tc ON p.product_category_name = tc.product_category_name\nGROUP BY \n  tc.product_category_name_english\nORDER BY \n  total_revenue DESC\nLIMIT 5;",
+      "hata": null
+    },
+    {
+      "id": "q007",
+      "tur": "zaman",
+      "dogru": false,
+      "sure_sn": 0.8,
+      "tahmin_sql": "SELECT \n  EXTRACT(DAY FROM AVG((order_delivered_customer_date - order_purchase_timestamp)::interval)) AS average_delivery_days\nFROM \n  orders;",
+      "hata": null
+    },
+    {
+      "id": "q008",
+      "tur": "zaman",
+      "dogru": false,
+      "sure_sn": 1.2,
+      "tahmin_sql": "SELECT \n  ROUND(COUNT(CASE WHEN order_delivered_customer_date > order_estimated_delivery_date THEN 1 END) * 100.0 / COUNT(*), 2) AS late_delivery_percentage\nFROM orders;",
+      "hata": null
+    },
+    {
+      "id": "q009",
+      "tur": "tuzak",
+      "dogru": false,
+      "sure_sn": 1.0,
+      "tahmin_sql": "SELECT c.customer_state, COUNT(DISTINCT c.customer_id) AS customer_count\nFROM customers c\nGROUP BY c.customer_state\nORDER BY customer_count DESC\nLIMIT 1;",
+      "hata": null
+    },
+    {
+      "id": "q010",
+      "tur": "gruplama",
+      "dogru": true,
+      "sure_sn": 0.6,
+      "tahmin_sql": "SELECT payment_type, SUM(payment_value) AS total_paid\nFROM order_payments\nGROUP BY payment_type;",
+      "hata": null
+    },
+    {
+      "id": "q011",
+      "tur": "tuzak",
+      "dogru": false,
+      "sure_sn": 1.6,
+      "tahmin_sql": "SELECT COUNT(DISTINCT order_id) AS order_count\nFROM orders\nWHERE EXTRACT(MONTH FROM order_purchase_timestamp) = EXTRACT(MONTH FROM CURRENT_DATE - INTERVAL '1 month')\nAND EXTRACT(YEAR FROM order_purchase_timestamp) = EXTRACT(YEAR FROM CURRENT_DATE - INTERVAL '1 month');",
+      "hata": null
+    },
+    {
+      "id": "q012",
+      "tur": "tek_tablo",
+      "dogru": true,
+      "sure_sn": 0.4,
+      "tahmin_sql": "SELECT AVG(review_score) AS average_review_score\nFROM order_reviews;",
+      "hata": null
+    },
+    {
+      "id": "q014",
+      "tur": "tek_tablo",
+      "dogru": true,
+      "sure_sn": 0.4,
+      "tahmin_sql": "SELECT COUNT(DISTINCT seller_id) FROM sellers;",
+      "hata": null
+    },
+    {
+      "id": "q015",
+      "tur": "tek_tablo",
+      "dogru": true,
+      "sure_sn": 0.5,
+      "tahmin_sql": "SELECT COUNT(DISTINCT product_category_name) AS distinct_product_category_count\nFROM products;",
+      "hata": null
+    },
+    {
+      "id": "q016",
+      "tur": "tek_tablo",
+      "dogru": true,
+      "sure_sn": 0.4,
+      "tahmin_sql": "SELECT MAX(price) AS max_price\nFROM order_items;",
+      "hata": null
+    },
+    {
+      "id": "q017",
+      "tur": "gruplama",
+      "dogru": false,
+      "sure_sn": 1.1,
+      "tahmin_sql": "SELECT geolocation_state, COUNT(DISTINCT sellers.seller_id) AS seller_count\nFROM sellers\nJOIN geolocation ON sellers.seller_zip_code_prefix = geolocation.geolocation_zip_code_prefix\nGROUP BY geolocation_state;",
+      "hata": null
+    },
+    {
+      "id": "q018",
+      "tur": "gruplama",
+      "dogru": true,
+      "sure_sn": 0.6,
+      "tahmin_sql": "SELECT review_score, COUNT(*) AS count\nFROM order_reviews\nGROUP BY review_score;",
+      "hata": null
+    },
+    {
+      "id": "q019",
+      "tur": "gruplama",
+      "dogru": true,
+      "sure_sn": 0.9,
+      "tahmin_sql": "SELECT payment_installments, COUNT(*) AS frequency\nFROM order_payments\nWHERE payment_type = 'credit_card'\nGROUP BY payment_installments\nORDER BY frequency DESC\nLIMIT 1;",
+      "hata": null
+    },
+    {
+      "id": "q020",
+      "tur": "join",
+      "dogru": false,
+      "sure_sn": 1.5,
+      "tahmin_sql": "SELECT \n    c.customer_city, \n    COUNT(DISTINCT o.order_id) AS total_orders\nFROM \n    customers c\nJOIN \n    orders o ON c.customer_id = o.customer_id\nGROUP BY \n    c.customer_city\nORDER BY \n    total_orders DESC\nLIMIT 5;",
+      "hata": null
+    },
+    {
+      "id": "q021",
+      "tur": "cok_adimli",
+      "dogru": false,
+      "sure_sn": 1.8,
+      "tahmin_sql": "SELECT \n    geolocation_state AS state, \n    AVG(price) AS avg_order_value\nFROM \n    orders\nJOIN \n    order_items ON orders.order_id = order_items.order_id\nJOIN \n    geolocation ON geolocation.geolocation_state = orders.customer_state\nGROUP BY \n    geolocation_state\nORDER BY \n    avg_order_value DESC\nLIMIT 3;",
+      "hata": "(psycopg.errors.UndefinedColumn) column orders.customer_state does not exist"
+    },
+    {
+      "id": "q022",
+      "tur": "join",
+      "dogru": false,
+      "sure_sn": 2.0,
+      "tahmin_sql": "SELECT \n    sellers.seller_id, \n    SUM(order_items.price + order_items.freight_value) AS total_revenue\nFROM \n    sellers\nJOIN \n    orders ON sellers.seller_id = orders.seller_id\nJOIN \n    order_items ON orders.order_id = order_items.order_id\nGROUP BY \n    sellers.seller_id\nORDER BY \n    total_revenue DESC\nLIMIT 10;",
+      "hata": "(psycopg.errors.UndefinedColumn) column orders.seller_id does not exist"
+    },
+    {
+      "id": "q023",
+      "tur": "zaman",
+      "dogru": false,
+      "sure_sn": 2.4,
+      "tahmin_sql": "SELECT \n  EXTRACT(MONTH FROM order_purchase_timestamp) AS month,\n  SUM(payment_value) AS monthly_revenue\nFROM \n  orders\nJOIN \n  order_payments ON orders.order_id = order_payments.order_id\nWHERE \n  order_purchase_timestamp >= '2018-01-01' \n  AND order_purchase_timestamp < '2018-04-01'\nGROUP BY \n  EXTRACT(MONTH FROM order_purchase_timestamp)\nORDER BY \n  month;",
+      "hata": null
+    },
+    {
+      "id": "q024",
+      "tur": "zaman",
+      "dogru": true,
+      "sure_sn": 1.4,
+      "tahmin_sql": "SELECT \n    EXTRACT(DOW FROM order_purchase_timestamp)::int AS day_of_week,\n    COUNT(*) AS order_count\nFROM \n    orders\nGROUP BY \n    EXTRACT(DOW FROM order_purchase_timestamp)::int\nORDER BY \n    order_count DESC\nLIMIT 1;",
+      "hata": null
+    },
+    {
+      "id": "q025",
+      "tur": "zaman",
+      "dogru": false,
+      "sure_sn": 2.1,
+      "tahmin_sql": "SELECT \n    EXTRACT(EPOCH FROM (order_delivered_customer_date - order_purchase_timestamp)) / 3600 AS delivery_time_hours,\n    geolocation_state\nFROM \n    orders\nJOIN \n    geolocation ON orders.customer_id = customers.customer_id\nJOIN \n    geolocation ON orders.customer_id = customers.customer_id\nORDER BY \n    delivery_time_hours DESC\nLIMIT 5;",
+      "hata": "(psycopg.errors.UndefinedTable) missing FROM-clause entry for table \"customers\""
+    },
+    {
+      "id": "q026",
+      "tur": "tuzak",
+      "dogru": false,
+      "sure_sn": 1.6,
+      "tahmin_sql": "SELECT \n  COUNT(DISTINCT CASE WHEN COUNT(order_id) OVER (PARTITION BY customer_id) > 1 THEN customer_id END) * 100.0 / COUNT(DISTINCT customer_id) AS percentage_of_multiple_order_customers\nFROM orders\nJOIN customers ON orders.customer_id = customers.customer_id;",
+      "hata": "(psycopg.errors.AmbiguousColumn) column reference \"customer_id\" is ambiguous"
+    },
+    {
+      "id": "q027",
+      "tur": "tuzak",
+      "dogru": false,
+      "sure_sn": 1.5,
+      "tahmin_sql": "SELECT \n  SUM(payment_value) AS total_revenue_last_year\nFROM \n  order_payments\nJOIN \n  orders ON order_payments.order_id = orders.order_id\nWHERE \n  orders.order_purchase_timestamp >= CURRENT_DATE - INTERVAL '1 year'\n  AND orders.order_purchase_timestamp < CURRENT_DATE;",
+      "hata": null
+    }
+  ]
+}

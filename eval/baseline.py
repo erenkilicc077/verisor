@@ -1,18 +1,23 @@
-﻿import os, re, json, time, datetime, decimal
+﻿import os, re, json, time, argparse, datetime, decimal
 from collections import defaultdict
 import yaml, ollama
 from dotenv import load_dotenv
 from sqlalchemy import create_engine
 
 load_dotenv()
-MODEL = os.getenv("OLLAMA_MODEL", "qwen3:14b")
+MODEL = os.getenv("OLLAMA_MODEL", "qwen3:8b")
 engine = create_engine(os.environ["DATABASE_URL_RO"])
 
 SISTEM = """Sen bir PostgreSQL uzmanısın. Kullanıcının Türkçe sorusunu aşağıdaki şemaya göre tek bir SELECT sorgusuna çevir.
 Sadece SQL yaz, açıklama yazma. SQL'i ```sql bloğu içinde ver.
 
 Şema:
-{sema}"""
+{sema}
+{sozluk}"""
+
+SOZLUK_BASLIK = """
+Anlam sözlüğü (iş terimleri ve kurallar; bunlara mutlaka uy):
+"""
 
 
 def sema_metni(conn):
@@ -44,21 +49,31 @@ def normalize(rows):
 
 
 def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--sozluk", action="store_true", help="Anlam sözlüğünü isteme ekle (B2)")
+    args = ap.parse_args()
+    deney = "b2_sozluk" if args.sozluk else "b1_sema"
+
+    sozluk = ""
+    if args.sozluk:
+        sozluk = SOZLUK_BASLIK + open("semantic.yaml", encoding="utf-8-sig").read()
+
     sorular = [q for q in yaml.safe_load(open("eval/golden.yaml", encoding="utf-8-sig")) if q.get("sql")]
     sonuclar, tur_skor = [], defaultdict(lambda: [0, 0])
 
     with engine.connect() as conn:
-        sema = sema_metni(conn)
+        sistem = SISTEM.format(sema=sema_metni(conn), sozluk=sozluk)
         for q in sorular:
             altin = normalize(conn.exec_driver_sql(q["sql"]).fetchall())
             bas = time.time()
             cevap = ollama.chat(
                 model=MODEL,
                 messages=[
-                    {"role": "system", "content": SISTEM.format(sema=sema)},
-                    {"role": "user", "content": q["soru"] + " /no_think"},
+                    {"role": "system", "content": sistem},
+                    {"role": "user", "content": q["soru"]},
                 ],
                 options={"temperature": 0},
+                think=False,
             )
             sure = round(time.time() - bas, 1)
             tahmin = sql_cikar(cevap["message"]["content"])
@@ -76,14 +91,14 @@ def main():
             print(f"{'✓' if dogru else '✗'} {q['id']} [{q['tur']}] {sure}s" + (f"  HATA: {hata}" if hata else ""))
 
     toplam = sum(r["dogru"] for r in sonuclar)
-    print(f"\nDoğruluk: {toplam}/{len(sonuclar)} = %{100 * toplam / len(sonuclar):.0f}")
+    print(f"\n[{deney}] Doğruluk: {toplam}/{len(sonuclar)} = %{100 * toplam / len(sonuclar):.0f}")
     for tur, (d, n) in sorted(tur_skor.items()):
         print(f"  {tur}: {d}/{n}")
 
     os.makedirs("eval/results", exist_ok=True)
-    dosya = f"eval/results/baseline_{datetime.datetime.now():%Y%m%d_%H%M}.json"
+    dosya = f"eval/results/{deney}_{datetime.datetime.now():%Y%m%d_%H%M}.json"
     with open(dosya, "w", encoding="utf-8") as f:
-        json.dump({"model": MODEL, "sonuclar": sonuclar}, f, ensure_ascii=False, indent=2)
+        json.dump({"deney": deney, "model": MODEL, "sonuclar": sonuclar}, f, ensure_ascii=False, indent=2)
     print(f"Kaydedildi: {dosya}")
 
 

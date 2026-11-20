@@ -238,3 +238,342 @@
   tur: belirsiz
   beklenen: "Geri soru sormalı: sipariş sayısına mı, ciroya mı, puana mı göre?"
   sql: null
+
+- id: q029
+  soru: "Müşteriler kaç farklı eyalette oturuyor?"
+  tur: tek_tablo
+  set: test 
+  sql: |
+    SELECT COUNT(DISTINCT customer_state) AS eyalet FROM customers;
+
+- id: q030
+  soru: "Sipariş kalemi başına ortalama kargo ücreti ne kadar?"
+  tur: tek_tablo
+  set: test
+  sql: |
+    SELECT AVG(freight_value) AS ortalama_kargo FROM order_items;
+
+- id: q031
+  soru: "Ağırlığı 10 kg'dan fazla olan kaç ürün var?"
+  tur: tek_tablo
+  set: test
+  sql: |
+    SELECT COUNT(*) AS urun FROM products WHERE product_weight_g > 10000;
+
+- id: q032
+  soru: "Kaç değerlendirmede yorum metni yazılmış?"
+  tur: tek_tablo
+  set: test
+  sql: |
+    SELECT COUNT(*) AS yorumlu
+    FROM order_reviews
+    WHERE review_comment_message IS NOT NULL AND review_comment_message <> '';
+  
+- id: q033
+  soru: "Ödeme yöntemlerine göre kaç ödeme yapılmış?"
+  tur: gruplama
+  set: test
+  sql: |
+    SELECT payment_type, COUNT(*) AS odeme
+    FROM order_payments GROUP BY 1 ORDER BY 2 DESC;
+
+- id: q034
+  soru: "Kredi kartı ödemelerinde taksit sayısına göre ortalama ödeme tutarı nedir?"
+  tur: gruplama
+  set: test
+  sql: |
+    SELECT payment_installments, AVG(payment_value) AS ortalama_tutar
+    FROM order_payments
+    WHERE payment_type = 'credit_card'
+    GROUP BY 1 ORDER BY 1;
+
+- id: q035
+  soru: "Satıcıların en çok bulunduğu 5 şehir hangileri?"
+  tur: gruplama
+  set: test
+  sql: |
+    SELECT seller_city, seller_state, COUNT(*) AS satici
+    FROM sellers
+    GROUP BY 1, 2
+    ORDER BY 3 DESC
+    LIMIT 5;
+
+- id: q036
+  soru: "10`dan fazla satıcısı olan eyaletler hangileri?"
+  tur: gruplama
+  set: test 
+  sql: |
+    SELECT seller_state, COUNT(*) AS satici
+    FROM sellers GROUP BY 1 HAVING COUNT(*) > 10 ORDER BY 2 DESC;
+
+- id: q037
+  soru: "Ürünlerin fotoğraf sayısına göre dağılımı nedir?"
+  tur: gruplama
+  set: test
+  sql: |
+    SELECT product_photos_qty, COUNT(*) AS urun
+    FROM products GROUP BY 1 ORDER BY 1;
+
+- id: q038
+  soru: "En az 100 değerlendirmesi olan kategoriler arasında ortalama puanı en düşük olan 5 kategori hangileri?"
+  tur: join
+  set: test
+  sql: |
+    WITH kategori_puan AS (
+      SELECT COALESCE(t.product_category_name_english, p.product_category_name) AS kategori,
+             AVG(r.review_score) AS ortalama_puan,
+             COUNT(*) AS degerlendirme_sayisi
+      FROM order_items oi
+      JOIN products p USING (product_id)
+      LEFT JOIN product_category_name_translation t USING (product_category_name)
+      JOIN order_reviews r USING (order_id)
+      GROUP BY 1
+    )
+    SELECT kategori, ortalama_puan, degerlendirme_sayisi
+    FROM kategori_puan
+    WHERE degerlendirme_sayisi >= 100
+    ORDER BY 2 ASC LIMIT 5;
+
+- id: q039
+  soru: "Geç teslim edilen siparişlerin ortalama puanı,zamanında teslim edilenlerinkinden ne kadar farklı?"
+  tur: join
+  set: test
+  sql: |
+   WITH s AS (
+      SELECT r.review_score,
+             o.order_delivered_customer_date > o.order_estimated_delivery_date AS gec
+      FROM orders o
+      JOIN order_reviews r USING (order_id)
+      WHERE o.order_status = 'delivered' AND o.order_delivered_customer_date IS NOT NULL
+    )
+    SELECT AVG(review_score) FILTER (WHERE gec) AS gec_puan,
+           AVG(review_score) FILTER (WHERE NOT gec) AS zamaninda_puan,
+           AVG(review_score) FILTER (WHERE NOT gec) - AVG(review_score) FILTER (WHERE gec) AS fark
+    FROM s;
+
+- id: q040
+  soru: "Ciroya göre en iyi 5 satıcı eyaleti hangileri?"
+  tur: join
+  set: test
+  sql: |
+   SELECT s.seller_state, SUM(oi.price) AS ciro
+    FROM order_items oi
+    JOIN orders o USING (order_id)
+    JOIN sellers s USING (seller_id)
+    WHERE o.order_status = 'delivered'
+    GROUP BY 1 ORDER BY 2 DESC LIMIT 5;
+
+
+- id: q041
+  soru: "En çok sipariş alan ürün kategorisi hangisi?"
+  tur: join
+  set: test
+  sql: |
+    SELECT COALESCE(t.product_category_name_english, p.product_category_name) AS kategori,
+           COUNT(DISTINCT oi.order_id) AS siparis
+    FROM order_items oi
+    JOIN products p USING (product_id)
+    LEFT JOIN product_category_name_translation t USING (product_category_name)
+    WHERE p.product_category_name IS NOT NULL
+    GROUP BY 1 ORDER BY 2 DESC LIMIT 1;
+
+- id: q042
+  soru: "SP eyaletindeki müşterilerden gelen toplam ciro ne kadar?"
+  tur: join
+  set: test
+  sql: |
+    SELECT SUM(oi.price) AS ciro
+    FROM orders o
+    JOIN customers c USING (customer_id)
+    JOIN order_items oi USING (order_id)
+    WHERE o.order_status = 'delivered' AND c.customer_state = 'SP';
+
+- id: q043
+  soru: "Ortalama kargo ücreti en yüksek 5 ürün kategorisi hangileri?"
+  tur: join
+  set: test
+  sql: |
+    SELECT COALESCE(t.product_category_name_english, p.product_category_name) AS kategori,
+           AVG(oi.freight_value) AS ortalama_kargo
+    FROM order_items oi
+    JOIN products p USING (product_id)
+    LEFT JOIN product_category_name_translation t USING (product_category_name)
+    WHERE p.product_category_name IS NOT NULL
+    GROUP BY 1 ORDER BY 2 DESC LIMIT 5;
+
+- id: q044
+  soru: "2018'de verilen ve teslim edilen siparişlerin sipariş ayına göre sayısı nedir?"
+  tur: zaman
+  set: test
+  sql: |
+    SELECT date_trunc('month', order_purchase_timestamp) AS ay, COUNT(*) AS siparis
+    FROM orders
+    WHERE order_status = 'delivered'
+      AND order_purchase_timestamp >= '2018-01-01' AND order_purchase_timestamp < '2019-01-01'
+    GROUP BY 1 ORDER BY 1;
+
+- id: q045
+  soru: "2017'nin son çeyreğinde toplam ciro ne kadar?"
+  tur: zaman
+  set: test
+  sql: |
+    SELECT SUM(oi.price) AS ciro
+    FROM orders o JOIN order_items oi USING (order_id)
+    WHERE o.order_status = 'delivered'
+      AND o.order_purchase_timestamp >= '2017-10-01' AND o.order_purchase_timestamp < '2018-01-01';
+
+- id: q046
+  soru: "Kasım 2017'de en çok siparişin geldiği gün hangisi?"
+  tur: zaman
+  set: test
+  sql: |
+    SELECT order_purchase_timestamp::date AS gun, COUNT(*) AS siparis
+    FROM orders
+    WHERE order_purchase_timestamp >= '2017-11-01' AND order_purchase_timestamp < '2017-12-01'
+    GROUP BY 1 ORDER BY 2 DESC LIMIT 1;
+
+- id: q047
+  soru: "Siparişler ortalama kaç saatte onaylanıyor?"
+  tur: zaman
+  set: test
+  sql: |
+    SELECT AVG(EXTRACT(EPOCH FROM order_approved_at - order_purchase_timestamp) / 3600) AS saat
+    FROM orders WHERE order_approved_at IS NOT NULL;
+
+- id: q048
+  soru: "En az 10 siparişi olan satıcılar arasında, siparişleri kargoya vermesi ortalamada en uzun süren 5 satıcı hangileri?"
+  tur: zaman
+  set: test
+  sql: |
+    WITH s AS (
+      SELECT DISTINCT oi.seller_id, o.order_id, o.order_purchase_timestamp, o.order_delivered_carrier_date
+      FROM order_items oi JOIN orders o USING (order_id)
+      WHERE o.order_delivered_carrier_date IS NOT NULL
+    )
+    SELECT seller_id,
+           AVG(EXTRACT(EPOCH FROM order_delivered_carrier_date - order_purchase_timestamp) / 86400) AS ortalama_gun
+    FROM s
+    GROUP BY 1 HAVING COUNT(*) >= 10
+    ORDER BY 2 DESC LIMIT 5;
+
+- id: q049
+  soru: "Yıllara göre ortalama sepet tutarı nasıl değişti?"
+  tur: zaman
+  set: test
+  sql: |
+    WITH t AS (
+      SELECT o.order_id, EXTRACT(YEAR FROM o.order_purchase_timestamp)::int AS yil, SUM(oi.price) AS tutar
+      FROM orders o JOIN order_items oi USING (order_id)
+      WHERE o.order_status = 'delivered'
+      GROUP BY 1, 2
+    )
+    SELECT yil, AVG(tutar) AS ortalama_sepet FROM t GROUP BY 1 ORDER BY 1;
+
+- id: q050
+  soru: "Teslim edilen siparişler tahmini tarihten ortalama kaç gün önce teslim ediliyor?"
+  tur: zaman
+  set: test
+  sql: |
+    SELECT AVG(EXTRACT(EPOCH FROM order_estimated_delivery_date - order_delivered_customer_date) / 86400) AS gun
+    FROM orders
+    WHERE order_status = 'delivered' AND order_delivered_customer_date IS NOT NULL;
+
+- id: q051
+  soru: "Eyaletlere göre müşteri sayısı nedir?"
+  tur: tuzak
+  set: test
+  sql: |
+    SELECT customer_state, COUNT(DISTINCT customer_unique_id) AS musteri
+    FROM customers GROUP BY 1 ORDER BY 2 DESC;
+
+- id: q052
+  soru: "Geçen yıl kaç sipariş verildi?"
+  tur: tuzak
+  set: test
+  sql: |
+    SELECT COUNT(*) AS siparis FROM orders
+    WHERE order_purchase_timestamp >= '2017-01-01' AND order_purchase_timestamp < '2018-01-01';
+
+- id: q053
+  soru: "Ortalama sepet tutarı ne kadar?"
+  tur: tuzak
+  set: test
+  sql: |
+    SELECT SUM(oi.price) / COUNT(DISTINCT o.order_id) AS ortalama_sepet
+    FROM orders o JOIN order_items oi USING (order_id)
+    WHERE o.order_status = 'delivered';
+
+- id: q054
+  soru: "Birden fazla siparişi olan kaç müşteri var?"
+  tur: tuzak
+  set: test
+  sql: |
+    SELECT COUNT(*) AS musteri FROM (
+      SELECT c.customer_unique_id
+      FROM customers c JOIN orders o USING (customer_id)
+      GROUP BY 1 HAVING COUNT(DISTINCT o.order_id) > 1
+    ) x;
+
+- id: q055
+  soru: "Geçen yıl kaç müşteri ilk siparişini verdi?"
+  tur: tuzak
+  set: test
+  sql: |
+    WITH ilk AS (
+      SELECT c.customer_unique_id, MIN(o.order_purchase_timestamp) AS ilk_siparis
+      FROM customers c JOIN orders o USING (customer_id)
+      GROUP BY 1
+    )
+    SELECT COUNT(*) AS yeni_musteri FROM ilk
+    WHERE ilk_siparis >= '2017-01-01' AND ilk_siparis < '2018-01-01';
+
+- id: q056
+  soru: "Sipariş başına kalem sayısının dağılımı nedir (1 kalemli, 2 kalemli...)?"
+  tur: cok_adimli
+  set: test
+  sql: |
+    WITH k AS (SELECT order_id, COUNT(*) AS kalem FROM order_items GROUP BY 1)
+    SELECT kalem, COUNT(*) AS siparis FROM k GROUP BY 1 ORDER BY 1;
+
+- id: q057
+  soru: "Teslim edilen siparişlerin yüzde kaçının tutarı ortalama sipariş tutarının üstünde?"
+  tur: cok_adimli
+  set: test
+  sql: |
+    WITH t AS (
+      SELECT o.order_id, SUM(oi.price) AS tutar
+      FROM orders o JOIN order_items oi USING (order_id)
+      WHERE o.order_status = 'delivered'
+      GROUP BY 1
+    )
+    SELECT 100.0 * AVG(CASE WHEN tutar > (SELECT AVG(tutar) FROM t) THEN 1 ELSE 0 END) AS yuzde
+    FROM t;
+
+- id: q058
+  soru: "2017'de her ay sipariş sayısı bir önceki aya göre yüzde kaç değişti?"
+  tur: cok_adimli
+  set: test
+  sql: |
+    WITH a AS (
+      SELECT date_trunc('month', order_purchase_timestamp) AS ay, COUNT(*) AS siparis
+      FROM orders
+      WHERE order_purchase_timestamp >= '2017-01-01' AND order_purchase_timestamp < '2018-01-01'
+      GROUP BY 1
+    )
+    SELECT ay, siparis,
+           100.0 * (siparis - LAG(siparis) OVER (ORDER BY ay)) / LAG(siparis) OVER (ORDER BY ay) AS degisim_yuzde
+    FROM a ORDER BY ay;
+
+- id: q059
+  soru: "En başarılı kategori hangisi?"
+  tur: belirsiz
+  set: test
+  beklenen: "Geri soru sormalı: ciroya mı, sipariş sayısına mı, ortalama puana mı göre?"
+  sql: null
+
+- id: q060
+  soru: "Teslimat performansımız nasıl?"
+  tur: belirsiz
+  set: test
+  beklenen: "Geri soru sormalı: ortalama teslim süresi mi, geç teslim oranı mı, tahmini tarihe göre sapma mı?"
+  sql: null            

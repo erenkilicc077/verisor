@@ -34,7 +34,7 @@ def geri_bildirim(soru, sql, rows, hata, onceki_sqller):
 
 def main():
     sozluk = SOZLUK_BASLIK + open("semantic.yaml", encoding="utf-8-sig").read()
-    sorular = [q for q in yaml.safe_load(open("eval/golden.yaml", encoding="utf-8-sig")) if q.get("sql")]
+    sorular = [q for q in yaml.safe_load(open("eval/golden.yaml", encoding="utf-8-sig")) if q.get("sql") and q.get("set", "dev") == os.getenv("SET", "dev")]
     sonuclar, tur_skor = [], defaultdict(lambda: [0, 0])
 
     with engine.connect() as conn:

@@ -1,0 +1,501 @@
+{
+  "deney": "b5_ornek",
+  "model": "qwen3:8b",
+  "k": 3,
+  "sonuclar": [
+    {
+      "id": "q001",
+      "tur": "tek_tablo",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 4.5,
+      "ornekler": [
+        "q003",
+        "q011",
+        "q004"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT COUNT(*) AS siparis_sayisi\nFROM orders;",
+          "hata": null,
+          "satir": 1
+        }
+      ]
+    },
+    {
+      "id": "q002",
+      "tur": "tuzak",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 0.7,
+      "ornekler": [
+        "q014",
+        "q015",
+        "q026"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT COUNT(DISTINCT customer_unique_id) AS musteri_sayisi FROM customers;",
+          "hata": null,
+          "satir": 1
+        }
+      ]
+    },
+    {
+      "id": "q003",
+      "tur": "gruplama",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 0.9,
+      "ornekler": [
+        "q001",
+        "q011",
+        "q024"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT order_status, COUNT(DISTINCT order_id) AS siparis_sayisi\nFROM orders\nGROUP BY order_status;",
+          "hata": null,
+          "satir": 8
+        }
+      ]
+    },
+    {
+      "id": "q004",
+      "tur": "join",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 0.9,
+      "ornekler": [
+        "q001",
+        "q003",
+        "q027"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT SUM(oi.price) AS ciro\nFROM orders o\nJOIN order_items oi USING (order_id)\nWHERE o.order_status = 'delivered';",
+          "hata": null,
+          "satir": 1
+        }
+      ]
+    },
+    {
+      "id": "q005",
+      "tur": "zaman",
+      "dogru": false,
+      "deneme": 1,
+      "sure_sn": 2.5,
+      "ornekler": [
+        "q011",
+        "q001",
+        "q003"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT \n  date_part('year', order_purchase_timestamp)::integer AS yil,\n  date_part('month', order_purchase_timestamp)::integer AS ay,\n  COUNT(DISTINCT order_id) AS siparis_sayisi\nFROM orders\nWHERE order_purchase_timestamp >= '2017-01-01' AND order_purchase_timestamp < '2018-01-01'\nGROUP BY 1, 2\nORDER BY 1, 2;",
+          "hata": null,
+          "satir": 12
+        }
+      ]
+    },
+    {
+      "id": "q006",
+      "tur": "join",
+      "dogru": false,
+      "deneme": 1,
+      "sure_sn": 1.8,
+      "ornekler": [
+        "q015",
+        "q022",
+        "q020"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT p.product_category_name_english AS kategori, SUM(oi.price) AS ciro\nFROM products p\nJOIN order_items oi ON p.product_id = oi.product_id\nJOIN orders o ON oi.order_id = o.order_id\nWHERE o.order_status = 'delivered'\nGROUP BY 1\nORDER BY 2 DESC\nLIMIT 5;",
+          "hata": "(psycopg.errors.UndefinedColumn) column p.product_category_name_english does not exist",
+          "satir": null
+        }
+      ]
+    },
+    {
+      "id": "q007",
+      "tur": "zaman",
+      "dogru": false,
+      "deneme": 1,
+      "sure_sn": 1.7,
+      "ornekler": [
+        "q011",
+        "q024",
+        "q008"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT EXTRACT(DAY FROM (order_delivered_customer_date - order_purchase_timestamp))::numeric::decimal AS ortalama_teslim_suresi\nFROM orders\nWHERE order_status = 'delivered'\nAND order_delivered_customer_date IS NOT NULL\nAND order_purchase_timestamp IS NOT NULL;",
+          "hata": null,
+          "satir": 96470
+        }
+      ]
+    },
+    {
+      "id": "q008",
+      "tur": "zaman",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 1.3,
+      "ornekler": [
+        "q007",
+        "q026",
+        "q011"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT 100.0 * AVG(CASE WHEN order_delivered_customer_date > order_estimated_delivery_date THEN 1 ELSE 0 END) AS yuzde\nFROM orders\nWHERE order_status = 'delivered';",
+          "hata": null,
+          "satir": 1
+        }
+      ]
+    },
+    {
+      "id": "q009",
+      "tur": "tuzak",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 1.2,
+      "ornekler": [
+        "q021",
+        "q020",
+        "q002"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT c.customer_state, COUNT(DISTINCT c.customer_unique_id) AS musteri_sayisi\nFROM customers c\nGROUP BY 1\nORDER BY 2 DESC LIMIT 1;",
+          "hata": null,
+          "satir": 1
+        }
+      ]
+    },
+    {
+      "id": "q010",
+      "tur": "gruplama",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 1.3,
+      "ornekler": [
+        "q004",
+        "q027",
+        "q001"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT \n  op.payment_type, \n  SUM(op.payment_value) AS toplam_odenen\nFROM \n  order_payments op\nJOIN \n  orders o USING (order_id)\nGROUP BY \n  op.payment_type;",
+          "hata": null,
+          "satir": 5
+        }
+      ]
+    },
+    {
+      "id": "q011",
+      "tur": "tuzak",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 1.2,
+      "ornekler": [
+        "q005",
+        "q001",
+        "q024"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT COUNT(*) AS siparis\nFROM orders\nWHERE order_purchase_timestamp >= '2018-09-01' AND order_purchase_timestamp < '2018-10-01';",
+          "hata": null,
+          "satir": 1
+        }
+      ]
+    },
+    {
+      "id": "q012",
+      "tur": "tek_tablo",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 0.6,
+      "ornekler": [
+        "q018",
+        "q007",
+        "q011"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT AVG(review_score) AS ortalama_degerlendirme\nFROM order_reviews;",
+          "hata": null,
+          "satir": 1
+        }
+      ]
+    },
+    {
+      "id": "q014",
+      "tur": "tek_tablo",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 0.4,
+      "ornekler": [
+        "q022",
+        "q002",
+        "q017"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT COUNT(DISTINCT seller_id) FROM sellers;",
+          "hata": null,
+          "satir": 1
+        }
+      ]
+    },
+    {
+      "id": "q015",
+      "tur": "tek_tablo",
+      "dogru": false,
+      "deneme": 1,
+      "sure_sn": 1.0,
+      "ornekler": [
+        "q006",
+        "q014",
+        "q002"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT COUNT(DISTINCT p.product_category_name) AS urun_kategori_sayisi\nFROM products p\nJOIN product_category_name_translation t USING (product_category_name);",
+          "hata": null,
+          "satir": 1
+        }
+      ]
+    },
+    {
+      "id": "q016",
+      "tur": "tek_tablo",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 1.2,
+      "ornekler": [
+        "q021",
+        "q024",
+        "q001"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT MAX(oi.price) AS en_pahalı_kalem_fiyatı\nFROM order_items oi\nJOIN orders o ON oi.order_id = o.order_id\nWHERE o.order_status = 'delivered';",
+          "hata": null,
+          "satir": 1
+        }
+      ]
+    },
+    {
+      "id": "q017",
+      "tur": "gruplama",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 0.8,
+      "ornekler": [
+        "q014",
+        "q003",
+        "q020"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT seller_state, COUNT(*) AS satici_sayisi\nFROM sellers\nGROUP BY 1\nORDER BY 2 DESC;",
+          "hata": null,
+          "satir": 23
+        }
+      ]
+    },
+    {
+      "id": "q018",
+      "tur": "gruplama",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 0.7,
+      "ornekler": [
+        "q012",
+        "q017",
+        "q023"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT review_score, COUNT(*) AS sayi\nFROM order_reviews\nGROUP BY 1\nORDER BY 1;",
+          "hata": null,
+          "satir": 5
+        }
+      ]
+    },
+    {
+      "id": "q019",
+      "tur": "gruplama",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 1.1,
+      "ornekler": [
+        "q010",
+        "q024",
+        "q026"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT payment_installments, COUNT(*) AS sıklık\nFROM order_payments\nWHERE payment_type = 'credit_card'\nGROUP BY 1\nORDER BY 2 DESC\nLIMIT 1;",
+          "hata": null,
+          "satir": 1
+        }
+      ]
+    },
+    {
+      "id": "q020",
+      "tur": "join",
+      "dogru": false,
+      "deneme": 1,
+      "sure_sn": 1.7,
+      "ornekler": [
+        "q024",
+        "q001",
+        "q025"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT c.customer_city,\n       COUNT(DISTINCT o.order_id) AS siparis_sayisi\nFROM customers c\nJOIN orders o ON c.customer_id = o.customer_id\nWHERE o.order_status = 'delivered'\nGROUP BY 1\nORDER BY 2 DESC\nLIMIT 5;",
+          "hata": null,
+          "satir": 5
+        }
+      ]
+    },
+    {
+      "id": "q021",
+      "tur": "cok_adimli",
+      "dogru": false,
+      "deneme": 1,
+      "sure_sn": 2.3,
+      "ornekler": [
+        "q020",
+        "q016",
+        "q009"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT \n    c.customer_state, \n    ROUND(SUM(oi.price) / COUNT(DISTINCT o.order_id), 2) AS ortalama_siparis_tutari\nFROM \n    customers c\nJOIN \n    orders o ON c.customer_id = o.customer_id\nJOIN \n    order_items oi ON o.order_id = oi.order_id\nGROUP BY \n    1\nORDER BY \n    3 DESC\nLIMIT 3;",
+          "hata": "(psycopg.errors.UndefinedFunction) function round(double precision, integer) does not exist",
+          "satir": null
+        }
+      ]
+    },
+    {
+      "id": "q022",
+      "tur": "join",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 1.6,
+      "ornekler": [
+        "q014",
+        "q006",
+        "q024"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT sellers.seller_id, SUM(oi.price) AS ciro\nFROM order_items oi\nJOIN orders o USING (order_id)\nJOIN sellers USING (seller_id)\nWHERE o.order_status = 'delivered'\nGROUP BY 1\nORDER BY 2 DESC\nLIMIT 10;",
+          "hata": null,
+          "satir": 10
+        }
+      ]
+    },
+    {
+      "id": "q023",
+      "tur": "zaman",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 2.4,
+      "ornekler": [
+        "q027",
+        "q005",
+        "q004"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT \n  date_trunc('month', order_purchase_timestamp) AS ay, \n  SUM(oi.price) AS ciro\nFROM orders o\nJOIN order_items oi USING (order_id)\nWHERE o.order_status = 'delivered'\n  AND order_purchase_timestamp >= '2018-01-01'\n  AND order_purchase_timestamp < '2018-04-01'\nGROUP BY 1\nORDER BY 1;",
+          "hata": null,
+          "satir": 3
+        }
+      ]
+    },
+    {
+      "id": "q024",
+      "tur": "zaman",
+      "dogru": false,
+      "deneme": 1,
+      "sure_sn": 1.4,
+      "ornekler": [
+        "q011",
+        "q001",
+        "q007"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT \n  EXTRACT(DOW FROM order_purchase_timestamp) AS hafta_gunu,\n  COUNT(*) AS siparis_sayisi\nFROM orders\nGROUP BY EXTRACT(DOW FROM order_purchase_timestamp)\nORDER BY siparis_sayisi DESC;",
+          "hata": null,
+          "satir": 7
+        }
+      ]
+    },
+    {
+      "id": "q025",
+      "tur": "zaman",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 2.9,
+      "ornekler": [
+        "q020",
+        "q007",
+        "q009"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT \n    c.customer_state, \n    AVG(EXTRACT(EPOCH FROM o.order_delivered_customer_date - o.order_purchase_timestamp) / 86400) AS teslimat_suresi_gun\nFROM \n    customers c\nJOIN \n    orders o ON c.customer_id = o.customer_id\nWHERE \n    o.order_status = 'delivered'\n    AND o.order_delivered_customer_date IS NOT NULL\n    AND o.order_purchase_timestamp IS NOT NULL\nGROUP BY \n    1\nORDER BY \n    2 DESC\nLIMIT 5;",
+          "hata": null,
+          "satir": 5
+        }
+      ]
+    },
+    {
+      "id": "q026",
+      "tur": "tuzak",
+      "dogru": false,
+      "deneme": 1,
+      "sure_sn": 1.8,
+      "ornekler": [
+        "q003",
+        "q008",
+        "q024"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT 100.0 * COUNT(DISTINCT CASE WHEN COUNT(order_id) OVER (PARTITION BY customer_id) >= 2 THEN customer_unique_id END) / COUNT(DISTINCT customer_unique_id) AS oran\nFROM customers\nJOIN orders ON customers.customer_id = orders.customer_id\nWHERE orders.order_status = 'delivered';",
+          "hata": "(psycopg.errors.GroupingError) aggregate function calls cannot contain window function calls",
+          "satir": null
+        }
+      ]
+    },
+    {
+      "id": "q027",
+      "tur": "tuzak",
+      "dogru": true,
+      "deneme": 1,
+      "sure_sn": 1.8,
+      "ornekler": [
+        "q023",
+        "q004",
+        "q010"
+      ],
+      "adimlar": [
+        {
+          "sql": "SELECT SUM(oi.price) AS ciro\nFROM orders o\nJOIN order_items oi USING (order_id)\nWHERE o.order_status = 'delivered'\n  AND o.order_purchase_timestamp >= '2017-01-01'\n  AND o.order_purchase_timestamp < '2018-01-01';",
+          "hata": null,
+          "satir": 1
+        }
+      ]
+    }
+  ]
+}

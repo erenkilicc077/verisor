@@ -13,9 +13,9 @@ Test seti (30 soru, sistem ayarları yapılırken hiç görülmedi):
 | B1: yalnızca şema | 7/30 (%23) | 9/30 (%30) |
 | B2: şema + anlam sözlüğü | 12/30 (%40) | 15/30 (%50) |
 | Ajan v2: B2 + hataya özel geri bildirimle yeniden deneme | 12/30 (%40) | 15/30 (%50) |
-
+| B5: B2 + embeddinggemma ile 3 benzer örnek (geliştirme setinden) | 16/30 (%53) | 17/30 (%57) |
 Geliştirme seti (26 soru, sistem bu sorulara bakılarak ayarlandı):
-
+| B5 (birini dışarıda bırak) | 18/26 (%69) | 20/26 (%77) |
 | Sistem | Katı doğruluk | Esnek doğruluk |
 |---|---|---|
 | B1 | 11/26 (%42) | 13/26 (%50) |
@@ -25,7 +25,7 @@ Geliştirme seti (26 soru, sistem bu sorulara bakılarak ayarlandı):
 Model: `qwen3:8b` (Ollama, yerel), RTX 4070 Laptop 8 GB, `temperature=0`, `seed=42`, düşünme modu kapalı. Ölçümler tekrarlarda ±1 soru oynayabiliyor.
 
 ## Bulgular
-
+0. **Benzer örnek getirme en büyük ikinci kazancı sağladı.** Geliştirme setinden anlamca en yakın 3 soru–SQL çifti isteme eklendiğinde test setinde katı doğruluk %40'tan %53'e çıktı. Örnek havuzunda test sorusu yoktur; geliştirme setinde ölçerken sorunun kendisi havuzdan çıkarılır. İlgisiz örnek getirildiğinde ise model yanlış kalıba yönlendirilebiliyor (örnek: q021).
 1. **İş tanımları en büyük kazancı getirdi.** "Ciro", "müşteri" ve "geçen ay" gibi kavramların açıkça tanımlandığı bir anlam sözlüğü, test setinde katı doğruluğu 17 puan artırdı. Tuzak sorularında artış 0/10'dan 6/10'a çıktı.
 2. **Daha fazla bağlam her zaman daha iyi değil.** Sözlüğün ilk sürümü puanı düşürdü (%50 → %38): model "teslim edilmiş siparişler" kuralını ilgisiz sorulara da uyguladı. Kuralları kapsamlı ("SADECE ciro hesaplarında") ve somut ("son sipariş tarihi 2018-10-17; CURRENT_DATE kullanma") yazınca sorun büyük ölçüde çözüldü.
 3. **Hata geri bildirimiyle yeniden deneme bu modelde işe yaramadı.** İki sette de yeniden denemeyle düzelen soru sayısı 0. Kalan hataların çoğu "sessiz": SQL çalışıyor ama sonuç yanlış. Çalışma zamanı hatası görmeyen bir döngü bunları yakalayamıyor.

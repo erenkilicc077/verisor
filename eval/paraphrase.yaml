@@ -1,0 +1,59 @@
+- id: p01
+  asil: q029
+  soru: "Müşteriler kaç farklı eyalette oturuyor?"
+
+- id: p02
+  asil: q030
+  soru: "Sipariş kalemi başına ortalama kargo ücreti ne kadar?"
+
+- id: p03
+  asil: q031
+  soru: "Ağırlığı 10 kg'dan fazla olan kaç ürün var?"
+
+- id: p04
+  asil: q032
+  soru: "Kaç değerlendirmede yorum metni yazılmış?"
+
+- id: p05
+  asil: q033
+  soru: "Ödeme yöntemlerine göre kaç ödeme yapılmış?"
+
+- id: p06
+  asil: q034
+  soru: "Kredi kartı ödemelerinde taksit sayısına göre ortalama ödeme tutarı nedir?"
+
+- id: p07
+  asil: q035
+  soru: "Satıcıların en çok bulunduğu 5 şehir hangileri?"
+
+- id: p08
+  asil: q036
+  soru: "10`dan fazla satıcısı olan eyaletler hangileri?"
+
+- id: p09
+  asil: q038
+  soru: "En az 100 değerlendirmesi olan kategoriler arasında ortalama puanı en düşükolan 5 kategori hangileri?"
+ 
+- id: p10
+  asil: q039
+  soru: "Geç teslim edilen siparişlerin ortalama puanı,zamanında teslim edilenlerinkinden ne kadar farklı?"
+
+- id: p11
+  asil: q046
+  soru: "Kasım 2017'de en çok siparişin geldiği gün hangisi?"
+
+- id: p12
+  asil: q047
+  soru: " Siparişler ortalama kaç saatte onaylanıyor?"
+
+- id: p13
+  asil: q048
+  soru: "En az 10 siparişi olan satıcılar arasında, siparişleri kargoya vermesi ortalamada en uzun süren 5 satıcı hangileri?"
+
+- id: p14
+  asil: q054
+  soru: "Birden fazla siparişi olan kaç müşteri var?"
+
+- id: p15
+  asil: q055
+  soru: "Geçen yıl kaç müşteri ilk siparişini verdi?"  

@@ -76,6 +76,7 @@ Gerçek kullanımda aynı soru farklı biçimlerde tekrar sorulur. Test setinden
 - Yeniden yazımları asıl soruları bilerek yaptım; bu, yazımları farkında olmadan kolaylaştırmış olabilir.
 - Yanlış bir onay havuzu kirletebilir. Önlemler: geliştirme seti örnekleri ezilemez, yanlış onay "Yanlış" ile geri alınabilir, etki test setiyle ölçülür.
 ## Nasıl çalışıyor?
+
 ## Arayüz
 
 ![VeriSor arayüzü](docs/ekran.png)
@@ -89,6 +90,7 @@ Tarayıcıda http://127.0.0.1:8000 adresini aç. API belgeleri http://127.0.0.1:
 - **Excel için indir (CSV):** Türkçe Excel'in doğrudan açtığı biçimde (`;` ayırıcı, virgüllü ondalık, UTF-8).
 - **Nasıl hesaplandı?** Çalıştırılan SQL'i ve modelin yararlandığı benzer soruları gösterir.
 - **Doğru / Yanlış:** Onaylanan cevaplar örnek havuzuna eklenir; sayfanın üstündeki sayaç havuzun büyüklüğünü gösterir. Tarayıcı sunucuya SQL göndermez, sadece cevabın kimliğini gönderir. Sunucu SQL'i kendi kaydından alır, böylece havuza dışarıdan sorgu sokulamaz.
+- **Düzelt:** "Yanlış" işaretlenen cevapta analist SQL'i düzenleyip çalıştırabilir ve sonucu önizleyebilir. Sadece başarıyla çalışmış SQL kaydedilebilir. Sunucu, kaydetmeden önce SQL'i aynı iki güvenlik katmanından (regex kontrolü + salt okuma kullanıcısı) geçirerek kendisi yeniden çalıştırır. Düzeltilmiş soru–SQL çifti havuza girer.
 - Geri bildirimler `geri_bildirim/kayitlar.jsonl` dosyasına yazılır (git'e eklenmez). Sunucu yeniden başlayınca havuz bu dosyadan yeniden kurulur.
 
 Grafikler kütüphane kullanılmadan SVG ile çizildi.
@@ -174,7 +176,7 @@ Test seti için başına `$env:SET="test";` ekle. Sonuçlar `eval/results/` klas
 - [x] Grafik ve Excel/CSV indirme
 - [x] Doğru/Yanlış geri bildirimi ve büyüyen örnek havuzu
 - [x] Geri bildirimin etkisini ölçme (B7, B8)
-- [ ] Arayüzden SQL düzeltme: analist yanlış SQL'i düzeltir, çalıştırıp onaylar (B8'e göre en değerli geri bildirim)
+- [x] Arayüzden SQL düzeltme: analist yanlış SQL'i düzeltir, çalıştırıp     onaylar (B8'e göre en değerli geri bildirim)
 - [ ] Belirsiz sorularda kullanıcıya netleştirme sorusu sorma
 - [ ] Önceki cevaba bağlı takip soruları ("bunu eyalete göre böl")
 

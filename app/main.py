@@ -40,7 +40,7 @@ def arayuz():
 
 @app.get("/health")
 def health():
-    return {"durum": "ok", "model": MODEL}
+        return {"durum": "ok", "model": MODEL, "havuz": ajan.havuz_ozeti()}
 
 
 @app.post("/ask")
@@ -70,4 +70,5 @@ def feedback(gb: GeriBildirim):
     KAYIT_DOSYASI.parent.mkdir(exist_ok=True)
     with KAYIT_DOSYASI.open("a", encoding="utf-8") as f:
         f.write(json.dumps(satir, ensure_ascii=False) + "\n")
-    return {"durum": "kaydedildi", "dogru": gb.dogru}
+    havuz_durumu = ajan.geri_bildirim_isle(kayit["soru"], kayit["sql"], gb.dogru)
+    return {"durum": "kaydedildi", "dogru": gb.dogru, "havuz": havuz_durumu, "havuz_ozeti": ajan.havuz_ozeti()}

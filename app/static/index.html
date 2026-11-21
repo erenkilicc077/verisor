@@ -160,6 +160,24 @@
     font: inherit; font-size: .9rem; cursor: pointer;
   }
   .indir:hover { background: rgba(30, 58, 158, .06); }
+
+  .havuz { margin: .6rem 0 0; color: var(--soluk); font-size: .85rem; }
+  .degerlendir {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+    margin-top: 1.1rem; color: var(--soluk); font-size: .95rem;
+  }
+  .secim {
+    padding: 4px 16px;
+    border: 1px solid var(--kursun); border-radius: 3px;
+    background: transparent; color: var(--kursun);
+    font: inherit; cursor: pointer;
+  }
+  .secim:hover { border-color: var(--murekkep); color: var(--murekkep); }
+  .secim:disabled { opacity: .5; cursor: wait; }
+  .karar { font-variation-settings: "CASL" 1, "MONO" 0; }
+  .karar.onay { color: var(--murekkep); }
+  .karar.ret { color: var(--kursun); }
+  .karar.sorun { color: var(--kirmizi); }
 </style>
 </head>
 <body>
@@ -168,6 +186,7 @@
     <h1>VeriSor</h1>
     <p>Satış verine Türkçe soru sor. Cevabı tablo olarak, nasıl hesaplandığıyla birlikte görürsün.
        Veri: Olist e-ticaret siparişleri, 2016–2018. Veritabanına yalnızca okuma erişimi var.</p>
+    <p class="havuz" id="havuz"></p>
   </header>
 
   <form id="form">
@@ -215,7 +234,8 @@
     d.append(el("summary", null, "Nasıl hesaplandı?"));
     d.append(el("pre", null, cevap.sql || ""));
     if (cevap.benzer_ornekler && cevap.benzer_ornekler.length) {
-      d.append(el("p", "not", "Model şu benzer sorulardan yararlandı:"));
+      const onay = cevap.onayli_ornek_sayisi ? ` (${cevap.onayli_ornek_sayisi} tanesi senin onayladığın cevaplardan)` : "";
+      d.append(el("p", "not", "Model şu benzer sorulardan yararlandı" + onay + ":"));
       const ul = el("ul");
       cevap.benzer_ornekler.forEach(s => ul.append(el("li", null, s)));
       d.append(ul);
@@ -319,6 +339,63 @@
     return b;
   }
 
+
+  async function havuzGuncelle() {
+    const yer = document.getElementById("havuz");
+    try {
+      const h = (await (await fetch("/health")).json()).havuz;
+      if (!h) return;
+      yer.textContent = `Örnek havuzu: ${h.golden} doğrulanmış soru, ${h.onayli} onaylı cevap.`;
+    } catch (e) {
+      yer.textContent = "";
+    }
+  }
+
+  const KARAR_METNI = {
+    eklendi: "✓ Onaylandı. Benzer sorularda örnek olarak kullanılacak.",
+    guncellendi: "✓ Onaylandı. Bu sorunun örneği yeni SQL ile güncellendi.",
+    golden_degismez: "✓ Onaylandı. Bu soru zaten doğrulanmış örnekler arasında.",
+    cikarildi: "Not edildi. Daha önce onaylanan örnek havuzdan çıkarıldı.",
+  };
+
+  function degerlendirme(cevap) {
+    const kutu = el("div", "degerlendir");
+    if (!cevap.id) return kutu;
+    kutu.append(el("span", null, "Bu cevap doğru mu?"));
+    const dogruB = el("button", "secim", "Doğru");
+    const yanlisB = el("button", "secim", "Yanlış");
+    dogruB.type = yanlisB.type = "button";
+    if (!cevap.hata) kutu.append(dogruB);
+    kutu.append(yanlisB);
+    let sorun = null;
+
+    async function gonderKarar(dogru) {
+      dogruB.disabled = yanlisB.disabled = true;
+      try {
+        const y = await fetch("/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ id: cevap.id, dogru }),
+        });
+        const j = await y.json();
+        if (!y.ok) throw new Error(j.detail || `HTTP ${y.status}`);
+        const metin = KARAR_METNI[j.havuz] ||
+          (dogru ? KARAR_METNI.eklendi : "Not edildi. Bu cevap örnek olarak kullanılmayacak.");
+        kutu.replaceChildren(el("span", dogru ? "karar onay" : "karar ret", metin));
+        havuzGuncelle();
+      } catch (e) {
+        dogruB.disabled = yanlisB.disabled = false;
+        if (sorun) sorun.remove();
+        sorun = el("span", "karar sorun", "Kaydedilemedi: " + e.message);
+        kutu.append(sorun);
+      }
+    }
+
+    dogruB.addEventListener("click", () => gonderKarar(true));
+    yanlisB.addEventListener("click", () => gonderKarar(false));
+    return kutu;
+  }
+
   function sonucuYaz(kayit, cevap) {
     const saniye = sayiBicim.format(cevap.sure_sn);
     const deneme = cevap.deneme > 1 ? `, ${cevap.deneme} denemede` : "";
@@ -354,6 +431,7 @@
       kayit.append(indirmeDugmesi(cevap));
       if (cevap.kesildi) kayit.append(el("p", "not", "İlk 200 satır gösteriliyor."));
     }
+    kayit.append(degerlendirme(cevap));
     kayit.append(nasilHesaplandi(cevap));
   }
 
@@ -399,6 +477,7 @@
     b.addEventListener("click", () => { if (!gonder.disabled) sor(b.textContent); })
   );
 
+  havuzGuncelle();
   girdi.focus();
 </script>
 </body>

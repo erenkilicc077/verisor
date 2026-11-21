@@ -97,7 +97,9 @@ class Ajan:
                 a = anahtar(k["soru"])
                 if a in golden_anahtarlar:
                     continue
-                if k["dogru"] and k.get("sql"):
+                if k.get("duzeltilmis_sql"):
+                    onaylar[a] = {"soru": k["soru"], "sql": k["duzeltilmis_sql"], "kaynak": "onay"}
+                elif k["dogru"] and k.get("sql"):
                     onaylar[a] = {"soru": k["soru"], "sql": k["sql"], "kaynak": "onay"}
                 else:
                     onaylar.pop(a, None)
@@ -142,6 +144,20 @@ class Ajan:
         except Exception as e:
             conn.rollback()
             return None, None, str(e).splitlines()[0]
+
+    def sql_dene(self, sql):
+        """Analistin yazdığı SQL'i modelinkiyle aynı iki güvenlik katmanından geçirerek çalıştırır."""
+        sql = sql.strip().rstrip(";").strip() + ";"
+        with self.engine.connect() as conn:
+            kolonlar, satirlar, hata = self._calistir(conn, sql)
+        satirlar = satirlar or []
+        return {
+            "sql": sql,
+            "hata": hata,
+            "kolonlar": kolonlar or [],
+            "satirlar": [[jsonla(v) for v in r] for r in satirlar[:MAX_SATIR]],
+            "kesildi": len(satirlar) > MAX_SATIR,
+        }
 
     def sor(self, soru, k=3, max_deneme=2):
         bas = time.time()

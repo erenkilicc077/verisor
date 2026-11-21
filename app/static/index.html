@@ -178,6 +178,19 @@
   .karar.onay { color: var(--murekkep); }
   .karar.ret { color: var(--kursun); }
   .karar.sorun { color: var(--kirmizi); }
+
+  .duzelt { margin-top: 1.1rem; }
+  .duzelt label { display: block; margin-bottom: .4rem; color: var(--soluk); font-size: .95rem; }
+  .duzelt textarea {
+    width: 100%; padding: 10px 12px;
+    border: 1px solid var(--kare); border-left: 3px solid var(--murekkep);
+    background: #fff; color: var(--kursun);
+    font-family: inherit; font-variation-settings: "CASL" 0, "MONO" 1;
+    font-size: .86rem; line-height: 1.45; resize: vertical;
+  }
+  .duzelt .degerlendir { margin-top: .6rem; }
+  .onizleme { margin-top: .8rem; }
+  p.karar { margin: 1.1rem 0 0; }
 </style>
 </head>
 <body>
@@ -358,41 +371,155 @@
     cikarildi: "Not edildi. Daha önce onaylanan örnek havuzdan çıkarıldı.",
   };
 
-  function degerlendirme(cevap) {
-    const kutu = el("div", "degerlendir");
-    if (!cevap.id) return kutu;
-    kutu.append(el("span", null, "Bu cevap doğru mu?"));
-    const dogruB = el("button", "secim", "Doğru");
-    const yanlisB = el("button", "secim", "Yanlış");
-    dogruB.type = yanlisB.type = "button";
-    if (!cevap.hata) kutu.append(dogruB);
-    kutu.append(yanlisB);
-    let sorun = null;
+  const KARAR_DUZELTME = {
+    eklendi: "✓ Düzeltme kaydedildi. Bu soru ve benzerleri artık düzeltilmiş SQL'den örnek alacak.",
+    guncellendi: "✓ Düzeltme kaydedildi. Bu sorunun örneği düzeltilmiş SQL ile güncellendi.",
+    golden_degismez: "Düzeltme kaydedildi. Bu soru doğrulanmış örnekler arasında olduğu için havuz değişmedi.",
+  };
 
-    async function gonderKarar(dogru) {
+  function dugme(metin) {
+    const b = el("button", "secim", metin);
+    b.type = "button";
+    return b;
+  }
+
+  async function postJson(url, govde) {
+    const y = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(govde),
+    });
+    const j = await y.json();
+    if (!y.ok) throw new Error(typeof j.detail === "string" ? j.detail : `HTTP ${y.status}`);
+    return j;
+  }
+
+  function onizleme(sonuc) {
+    const kap = el("div", "onizleme");
+    if (sonuc.hata) { kap.append(el("p", "hata", "Çalışmadı: " + sonuc.hata)); return kap; }
+    if (!sonuc.satirlar.length) { kap.append(el("p", "not", "Sorgu çalıştı ama sonuç boş.")); return kap; }
+    const tablo = el("table");
+    const bas = el("tr");
+    sonuc.kolonlar.forEach(k => bas.append(el("th", null, k)));
+    const thead = el("thead"); thead.append(bas); tablo.append(thead);
+    const govde = el("tbody");
+    sonuc.satirlar.slice(0, 10).forEach(r => {
+      const tr = el("tr");
+      r.forEach(v => tr.append(el("td", typeof v === "number" ? "sayi" : null, bicimle(v))));
+      govde.append(tr);
+    });
+    tablo.append(govde);
+    const tk = el("div", "tablo-kap"); tk.append(tablo); kap.append(tk);
+    if (sonuc.satirlar.length > 10) {
+      kap.append(el("p", "not", `İlk 10 satır gösteriliyor (toplam ${sonuc.satirlar.length}${sonuc.kesildi ? "+" : ""}).`));
+    }
+    return kap;
+  }
+
+  function degerlendirme(cevap) {
+    const kutu = el("div", "degerlendir-kap");
+    if (!cevap.id) return kutu;
+    const satir = el("div", "degerlendir");
+    satir.append(el("span", null, "Bu cevap doğru mu?"));
+    const dogruB = dugme("Doğru"), yanlisB = dugme("Yanlış");
+    if (!cevap.hata) satir.append(dogruB);
+    satir.append(yanlisB);
+    kutu.append(satir);
+
+    let sorun = null;
+    const sorunYaz = (yer, metin) => {
+      if (sorun) sorun.remove();
+      sorun = el("p", "karar sorun", metin);
+      yer.append(sorun);
+    };
+    const bitir = (metin, sinif) => {
+      kutu.replaceChildren(el("p", "karar " + sinif, metin));
+      havuzGuncelle();
+    };
+
+    dogruB.addEventListener("click", async () => {
       dogruB.disabled = yanlisB.disabled = true;
       try {
-        const y = await fetch("/feedback", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id: cevap.id, dogru }),
-        });
-        const j = await y.json();
-        if (!y.ok) throw new Error(j.detail || `HTTP ${y.status}`);
-        const metin = KARAR_METNI[j.havuz] ||
-          (dogru ? KARAR_METNI.eklendi : "Not edildi. Bu cevap örnek olarak kullanılmayacak.");
-        kutu.replaceChildren(el("span", dogru ? "karar onay" : "karar ret", metin));
-        havuzGuncelle();
+        const j = await postJson("/feedback", { id: cevap.id, dogru: true });
+        bitir(KARAR_METNI[j.havuz] || KARAR_METNI.eklendi, "onay");
       } catch (e) {
         dogruB.disabled = yanlisB.disabled = false;
-        if (sorun) sorun.remove();
-        sorun = el("span", "karar sorun", "Kaydedilemedi: " + e.message);
-        kutu.append(sorun);
+        sorunYaz(kutu, "Kaydedilemedi: " + e.message);
       }
-    }
+    });
 
-    dogruB.addEventListener("click", () => gonderKarar(true));
-    yanlisB.addEventListener("click", () => gonderKarar(false));
+    yanlisB.addEventListener("click", () => {
+      satir.hidden = true;
+      const panel = el("div", "duzelt");
+      const etiket = el("label", null, "Doğru SQL'i yaz ya da modelin SQL'ini düzelt:");
+      const alan = el("textarea");
+      alan.id = "duzelt-" + cevap.id;
+      etiket.htmlFor = alan.id;
+      alan.spellcheck = false;
+      alan.value = cevap.sql || "";
+      alan.rows = Math.min(14, Math.max(5, alan.value.split("\n").length + 1));
+      const calistirB = dugme("Çalıştır");
+      const kaydetB = dugme("Düzeltilmiş hâliyle kaydet");
+      const sadeceB = dugme("Düzeltmeden yanlış olarak kaydet");
+      const vazgecB = dugme("Vazgeç");
+      kaydetB.disabled = true;
+      const dugmeler = el("div", "degerlendir");
+      dugmeler.append(calistirB, kaydetB, sadeceB, vazgecB);
+      const sonucYeri = el("div");
+      panel.append(etiket, alan, dugmeler, sonucYeri);
+      kutu.append(panel);
+      alan.focus();
+
+      // Kaydedilen SQL her zaman sonucu görülmüş SQL olsun.
+      let denenen = null;
+      alan.addEventListener("input", () => { kaydetB.disabled = alan.value !== denenen; });
+
+      calistirB.addEventListener("click", async () => {
+        calistirB.disabled = true;
+        calistirB.textContent = "Çalışıyor…";
+        try {
+          const s = await postJson("/dene", { sql: alan.value });
+          sonucYeri.replaceChildren(onizleme(s));
+          denenen = s.hata ? null : alan.value;
+          kaydetB.disabled = denenen === null;
+        } catch (e) {
+          sonucYeri.replaceChildren(el("p", "hata", "Çalıştırılamadı: " + e.message));
+        } finally {
+          calistirB.disabled = false;
+          calistirB.textContent = "Çalıştır";
+        }
+      });
+
+      kaydetB.addEventListener("click", async () => {
+        kaydetB.disabled = sadeceB.disabled = true;
+        try {
+          const j = await postJson("/feedback", { id: cevap.id, dogru: false, duzeltilmis_sql: alan.value });
+          bitir(KARAR_DUZELTME[j.havuz] || KARAR_DUZELTME.eklendi, "onay");
+        } catch (e) {
+          kaydetB.disabled = sadeceB.disabled = false;
+          sorunYaz(panel, "Kaydedilemedi: " + e.message);
+        }
+      });
+
+      sadeceB.addEventListener("click", async () => {
+        kaydetB.disabled = sadeceB.disabled = true;
+        try {
+          const j = await postJson("/feedback", { id: cevap.id, dogru: false });
+          bitir(KARAR_METNI[j.havuz] || "Not edildi. Bu cevap örnek olarak kullanılmayacak.", "ret");
+        } catch (e) {
+          sadeceB.disabled = false;
+          kaydetB.disabled = alan.value !== denenen;
+          sorunYaz(panel, "Kaydedilemedi: " + e.message);
+        }
+      });
+
+      vazgecB.addEventListener("click", () => {
+        panel.remove();
+        if (sorun) { sorun.remove(); sorun = null; }
+        satir.hidden = false;
+        yanlisB.focus();
+      });
+    });
     return kutu;
   }
 
